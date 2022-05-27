@@ -2,17 +2,14 @@
 # help screen
 # tutorial screen
 # graph options
-# make input screen nicer / faster
+# make scrollbar always work
 
 
 
 import json, os, matplotlib
 import numpy as np
 from pylatex import Document, Section, Subsection, Table, Math, TikZ, Axis, \
-    Plot, Figure, Package
-# from pylatex.numpy import Matrix
-# from pylatex.utils import italic, escape_latex
-
+    Plot, Figure, Package, Itemize
 from tkinter import *
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 import pandas as pd
@@ -140,30 +137,49 @@ nsButton.grid(column=0, row=1, sticky="ns")
 # vars path stuff
 savingDirString=""
 
-
 # fxn to enter new answer
 def openAnswerCreator():
     # window set up
+    # TODO: make scrollbar work without dragging the window to the top
     top=Toplevel()
+    top.state("zoomed")
     top.title("Answer Entry")
-    global a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, ansSets, savingDirString, setName
-
+    # make scroll bar
+    def makeScrollBar():
+        global mainFrame, secondFrame, canvas
+        mainFrame=Frame(top)
+        mainFrame.pack(fill=BOTH, expand=1)
+        # create canvas
+        canvas=Canvas(mainFrame)
+        canvas.pack(side=LEFT, fill=BOTH, expand=1)
+        # scroll bar
+        sb=Scrollbar(mainFrame, orient=VERTICAL, command=canvas.yview)
+        sb.pack(side=RIGHT, fill=Y)
+        # configure the canvas
+        canvas.configure(yscrollcommand=sb.set)
+        canvas.bind('<Configure>', lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        # create another frame in the canvas
+        secondFrame=Frame(canvas)
+        canvas.create_window((0,0), window=secondFrame, anchor="nw")
+    def resetScrollBar():
+        global mainFrame, canvas
+        #canvas.bind('<Configure>', lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        canvas.config(scrollregion=mainFrame.bbox())
+    makeScrollBar()
+    # global vars
+    global a1, a2, a3, a3LB, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, ansSets, savingDirString, setName
     # makes frame to select which set to save into
-    setFrame=LabelFrame(top, text="Answer Sets", height=500, width=100, padx=5, pady=2)
+    setFrame=LabelFrame(secondFrame, text="Answer Sets", height=500, width=100, padx=5, pady=2)
     setFrame.grid(column=1, row=0, padx=10, pady=2, rowspan=18)
-
     # makes variables for the saving set as a string var
     setName=StringVar()
     setName.set(None)
-
     # fxn which takes the selected set to save into and makes the global savingDirString var that set
     # must start in highest dir, ends in highest dir
     def click(value):
-        global savingDirString
-
+        global savingDirString, fnameEntry
         # sets target dir as a string
         savingDirString=str(value)
-
         # goes to the selected dir and counts how many responses are in it
         dirPath=os.path.join("Answer_Sets", savingDirString)
         os.chdir(dirPath)
@@ -174,96 +190,196 @@ def openAnswerCreator():
         os.chdir("..")
         os.chdir("..")
         # makes file name entry box
-        fnameEntry=Entry(top, width=50)
+        fnameEntry=Entry(secondFrame, width=50)
         fnameEntry.grid(column=2, row=4)
         fnameEntry.insert(0,"Student"+str(stuCount))
-
+        # makes entry frame
+        eSetUp()
         # makes save button
-        saveButton=Button(top, text="Save Answers", command=lambda: saveEntries(fnameEntry.get()))
+        saveButton=Button(secondFrame, text="Save Answers", command=lambda: saveEntries(fnameEntry.get()))
         saveButton.grid(column=2, row=5)
     # saves text from entries in AD as a json
     # must start in highest dir, ends in highest dir
     def saveEntries(name):
-        # global a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, AD, savingDirString, setName
-        global savingDirString, setName, q1entry, a2, q3entry, a4, a5, a6, a7, q8entry, q9entry, q10entry, q11entry, a12, a13, q14entry, a15, q16entry, q17entry, q18entry
+        global a1, a2, a3, a3LB, a4, a5, a6, a7, a8, a8LB, a9, a9LB, a10, a10LB, a11, a11LB, a12, a13, a14, a14LB, a15, a16, a16LB, a17, a18, AD, savingDirString, setName, fnameEntry
         targetDir=os.path.join("Answer_Sets", savingDirString)
         os.chdir(targetDir)
-
         # gets answers into strings
-        # q1entry not defined
-        a1=q1entry.get()
-        # a2 is None after the 1st student is saved
+        a1=a1.get()
         a2=a2.get()
-        a3=q3entry.get()
+        # TODO: fix a3 (multi select)
+        # must be string with entries sep by ", "
+        # e.g. merp, derp
+        a3List=makeAnsList(a3LB)
+        a3=", ".join(a3List)
         a4=a4.get()
         a5=a5.get()
         a6=a6.get()
         a7=a7.get()
-        a8=q8entry.get()
-        a9=q9entry.get()
-        a10=q10entry.get()
-        a11=q11entry.get()
+        a8List=makeAnsList(a8LB)
+        a8=", ".join(a8List)
+        a9List=makeAnsList(a9LB)
+        a9=", ".join(a9List)
+        a10List=makeAnsList(a10LB)
+        a10=", ".join(a10List)
+        a11List=makeAnsList(a11LB)
+        a11=", ".join(a11List)
         a12=a12.get()
         a13=a13.get()
-        a14=q14entry.get()
+        a14List=makeAnsList(a14LB)
+        a14=", ".join(a14List)
         a15=a15.get()
-        a16=q16entry.get()
-        a17=q17entry.get()
-        a18=q18entry.get()
+        a16List=makeAnsList(a16LB)
+        a16=", ".join(a16List)
+        a17=a17.get()
+        a18=a18.get()
         answerDict={"Q1":a1, "Q2":a2, "Q3":a3, "Q4":a4, "Q5":a5, "Q6":a6, "Q7":a7, "Q8":a8, "Q9":a9,"Q10":a10, "Q11":a11, "Q12":a12, "Q13":a13, "Q14":a14, "Q15":a15, "Q16":a16, "Q17":a17, "Q18":a18}
-        # AD=answerDict
+        fileName=fnameEntry.get()
         with open(name+".json", "w") as outfile:
             json.dump(answerDict, outfile)
-        os.chdir("..")
-        os.chdir("..")
-        # goes to the selected dir and counts how many responses are in it
-        dirPath=os.path.join("Answer_Sets", savingDirString)
-        os.chdir(dirPath)
+        # updates the name of the file that the answers are saved as
         stuCount=0
         for file in os.listdir():
             if file[-4:]=="json":
                 stuCount+=1
         os.chdir("..")
         os.chdir("..")
-        # makes file name entry box
-        fnameEntry=Entry(top, width=50)
-        fnameEntry.grid(column=2, row=4)
-        fnameEntry.insert(0,"Student"+str(stuCount))
         # reset entries
         eSetUp()
-    # makes the radio buttons
+        # makes file name entry box
+        fnameEntry=Entry(secondFrame, width=50)
+        fnameEntry.grid(column=2, row=4)
+        fnameEntry.insert(0,"Student"+str(stuCount))
+    # gets answers from multiple selection questions
+    def makeAnsList(LB):
+        retList=[]
+        for i in LB.curselection():
+            retList.append(LB.get(i))
+        return retList
+    # makes the answer set radio buttons
     rowNum=0
     for aset in ansSets:
         Radiobutton(setFrame, text=aset, variable=setName, value=aset, command=lambda: click(setName.get())).grid(column=0, row=rowNum)
         rowNum+=1
     # fxn that sets up entries
+    # TODO: changing dir stacks frames on top of eachother
     def eSetUp():
-        global q1entry, a2, q3entry, a4, a5, a6, a7, q8entry, q9entry, q10entry, q11entry, a12, a13, q14entry, a15, q16entry, q17entry, q18entry
+        global a1, a2, a3, a3LB, a4, a5, a6, a7, a8, a8LB, a9, a9LB, a10, a10LB, a11, a11LB, a12, a13, a14, a14LB, a15, a16, a16LB, a17, a18, savingDirString, mainFrame, canvas
+        # allows for fast selections
+        # makes buttons for free response questions
+        def FRQbutton(question, frame, var):
+            colNum=0
+            rowNum=1
+            if question!="Q3":
+                for ans in ansListDict[question]:
+                    Radiobutton(frame, text=ans, variable=var, value=ans).grid(column=colNum, row=rowNum, sticky="w")
+                    colNum+=1
+                    if colNum==2:
+                        colNum=0
+                        rowNum+=1
+        # returns "No Answer" if value==""
+        def blankFxn(value):
+            if value=="":
+                ans="No Answer"
+            else:
+                ans=value
+            return ans
+        # dict of lists of free response options
+        def makeAnsLists():
+            global savingDirString
+            # makes a dict of lists for each question
+            aListDict={"Q1":[], "Q3":[], "Q8":[], "Q9":[], "Q10":[], "Q11":[], "Q14":[], "Q16":[], "Q17":[], "Q18":[]}
+            # goes thu ansFiles, populates aListDict with all answers
+            dirPath=os.path.join("Answer_Sets", savingDirString)
+            os.chdir(dirPath)
+            for file in os.listdir():
+                if file[-4:]=="json":
+                    with open(file) as json_file:
+                        data = json.load(json_file)
+                        aListDict["Q1"].append(blankFxn(data["Q1"]))
+                        aListDict["Q3"].append(blankFxn(data["Q3"]))
+                        aListDict["Q8"].append(blankFxn(data["Q8"]))
+                        aListDict["Q9"].append(blankFxn(data["Q9"]))
+                        aListDict["Q10"].append(blankFxn(data["Q10"]))
+                        aListDict["Q11"].append(blankFxn(data["Q11"]))
+                        aListDict["Q14"].append(blankFxn(data["Q14"]))
+                        aListDict["Q16"].append(blankFxn(data["Q16"]))
+                        aListDict["Q17"].append(blankFxn(data["Q17"]))
+                        aListDict["Q18"].append(blankFxn(data["Q18"]))
+            # if it is a mult choice, we want each ans to be a button
+            #TODO; fix a3
+            realQ3List=[]
+            for answer in aListDict["Q3"]:
+                answerList=answer.split(", ")
+                if len(answerList)>1:
+                    for ans in answerList:
+                        realQ3List.append(ans)
+                else:
+                    realQ3List.append(answer)
+            aListDict["Q3"]=realQ3List
+            for key in aListDict:
+                aListDict[key]=list(set(aListDict[key]))
+            # aListDict["Q3"]=list(set(realQ3List))
+            os.chdir("..")
+            os.chdir("..")
+            return aListDict
+        ansListDict=makeAnsLists()
+        # updates a list of previous answers with newAns
+        def updateAnsList(newAns, question, frame, var):
+            global mainFrame, canvas
+            # updates list
+            ansListDict[question].append(newAns)
+            # makes buttons
+            FRQbutton(question, frame, var)
+            # updates scrollbar
+            resetScrollBar()
         # frame for q1
-        q1Frame=LabelFrame(top, text="Q1: what school did you attend?")
+        q1Frame=LabelFrame(secondFrame, text="Q1: what school did you attend?")
         q1Frame.grid(column=0, row=0)
+        # var and buttons for a1
+        a1=StringVar()
+        a1.set(None)
+        FRQbutton("Q1", q1Frame, a1)
         # entry box for q1
-        q1entry=Entry(q1Frame, width=150)
+        q1entry=Entry(q1Frame, width=50)
         q1entry.grid(column=0,row=0)
+        q1AddButton=Button(q1Frame, text="Add", command=lambda: updateAnsList(q1entry.get(), "Q1", q1Frame, a1)).grid(column=1, row=0)
+        
         # frame and buttons for q2
         a2=StringVar()
         a2.set(None)
-        q2Frame=LabelFrame(top, text="Q2: what is your grade level?")
+        q2Frame=LabelFrame(secondFrame, text="Q2: what is your grade level?")
         q2Frame.grid(column=0, row=1)
         fButton=Radiobutton(q2Frame, text="Freshman", variable=a2, value="Freshman").grid(column=0, row=0)
         soButton=Radiobutton(q2Frame, text="Sophomore", variable=a2, value="Sophomer").grid(column=1, row=0)
         jButton=Radiobutton(q2Frame, text="Junior", variable=a2, value="Junior").grid(column=2, row=0)
         srButton=Radiobutton(q2Frame, text="Senior", variable=a2, value="Senior").grid(column=3, row=0)
+        
+        
         # frame for q3
-        q3Frame=LabelFrame(top, text="Q3: What classes are/have you take(n)")
+        q3Frame=LabelFrame(secondFrame, text="Q3: What classes are/have you take(n)")
         q3Frame.grid(column=0, row=2)
+        # var and buttons for a3
+        a3=StringVar()
+        a3.set(None)
+        List=ansListDict["Q3"]
+        a3LB=Listbox(q3Frame, selectmode="multiple")
+        a3LB.grid(column=0, row=1)
+        for item in List:
+            a3LB.insert(END, item)
+        # updates a3LB
+        def q3Updater(newAns):
+            ansListDict["Q3"].append(newAns)
+            a3LB.insert(END, newAns)
+            resetScrollBar()
         # entry box for q3
-        q3entry=Entry(q3Frame, width=150)
+        q3entry=Entry(q3Frame, width=50)
         q3entry.grid(column=0,row=0)
+        q3AddButton=Button(q3Frame, text="Add", command=lambda: q3Updater(q3entry.get())).grid(column=7, row=0)
         # frame and buttons for q4
         a4=StringVar()
         a4.set(None)
-        q4Frame=LabelFrame(top, text="Q4: How well prepared were you for the questions?")
+        q4Frame=LabelFrame(secondFrame, text="Q4: How well prepared were you for the questions?")
         q4Frame.grid(column=0, row=3)
         button41=Radiobutton(q4Frame, text="1", variable=a4, value="1").grid(column=0, row=0)
         button42=Radiobutton(q4Frame, text="2", variable=a4, value="2").grid(column=1, row=0)
@@ -273,7 +389,7 @@ def openAnswerCreator():
         # frame and buttons for q5
         a5=StringVar()
         a5.set(None)
-        q5Frame=LabelFrame(top, text="Q5: Does FICB content mirror what you learned in school?")
+        q5Frame=LabelFrame(secondFrame, text="Q5: Does FICB content mirror what you learned in school?")
         q5Frame.grid(column=0, row=4)
         button51=Radiobutton(q5Frame, text="1", variable=a5, value="1").grid(column=0, row=0)
         button52=Radiobutton(q5Frame, text="2", variable=a5, value="2").grid(column=1, row=0)
@@ -283,7 +399,7 @@ def openAnswerCreator():
         # frame and buttons for q6
         a6=StringVar()
         a6.set(None)
-        q6Frame=LabelFrame(top, text="Q6: Was the competition format easy to understand?")
+        q6Frame=LabelFrame(secondFrame, text="Q6: Was the competition format easy to understand?")
         q6Frame.grid(column=0, row=5)
         button61=Radiobutton(q6Frame, text="1", variable=a6, value="1").grid(column=0, row=0)
         button62=Radiobutton(q6Frame, text="2", variable=a6, value="2").grid(column=1, row=0)
@@ -293,7 +409,7 @@ def openAnswerCreator():
         # frame and buttons for q7
         a7=StringVar()
         a7.set(None)
-        q7Frame=LabelFrame(top, text="Q7: I studied the content at www.ficbonline.org")
+        q7Frame=LabelFrame(secondFrame, text="Q7: I studied the content at www.ficbonline.org")
         q7Frame.grid(column=0, row=6)
         button71=Radiobutton(q7Frame, text="1", variable=a7, value="1").grid(column=0, row=0)
         button72=Radiobutton(q7Frame, text="2", variable=a7, value="2").grid(column=1, row=0)
@@ -301,80 +417,173 @@ def openAnswerCreator():
         button74=Radiobutton(q7Frame, text="4", variable=a7, value="4").grid(column=3, row=0)
         button75=Radiobutton(q7Frame, text="5", variable=a7, value="5").grid(column=4, row=0)
         # frame for q8
-        q8Frame=LabelFrame(top, text="Q8: How did you prepare for the competition?")
+        q8Frame=LabelFrame(secondFrame, text="Q8: How did you prepare for the competition?")
         q8Frame.grid(column=0, row=7)
+        # var and buttons for a8
+        a8=StringVar()
+        a8.set(None)
+        List=ansListDict["Q8"]
+        a8LB=Listbox(q8Frame, selectmode="multiple")
+        a8LB.grid(column=0, row=1)
+        for item in List:
+            a8LB.insert(END, item)
+        # updates a8LB
+        def q8Updater(newAns):
+            ansListDict["Q8"].append(newAns)
+            a8LB.insert(END, newAns)
+            resetScrollBar()
         # entry box for q8
-        q8entry=Entry(q8Frame, width=150)
+        q8entry=Entry(q8Frame, width=50)
         q8entry.grid(column=0,row=0)
+        q8AddButton=Button(q8Frame, text="Add", command=lambda: q8Updater(q8entry.get())).grid(column=7, row=0)
+        
         # frame for q9
-        q9Frame=LabelFrame(top, text="Q9: What did you enjoy most about the competition?")
+        q9Frame=LabelFrame(secondFrame, text="Q9: What did you enjoy most about the competition?")
         q9Frame.grid(column=0, row=8)
+        # var and buttons for a9
+        a9=StringVar()
+        a9.set(None)
+        List=ansListDict["Q9"]
+        a9LB=Listbox(q9Frame, selectmode="multiple")
+        a9LB.grid(column=0, row=1)
+        for item in List:
+            a9LB.insert(END, item)
+        # updates a9LB
+        def q9Updater(newAns):
+            ansListDict["Q9"].append(newAns)
+            a9LB.insert(END, newAns)
+            resetScrollBar()
         # entry box for q9
-        q9entry=Entry(q9Frame, width=150)
+        q9entry=Entry(q9Frame, width=50)
         q9entry.grid(column=0,row=0)
+        q9AddButton=Button(q9Frame, text="Add", command=lambda: q9Updater(q9entry.get())).grid(column=7, row=0)
         # frame for q10
-        q10Frame=LabelFrame(top, text="Q10: What did you enjoy least about the competition?")
+        q10Frame=LabelFrame(secondFrame, text="Q10: What did you enjoy least about the competition?")
         q10Frame.grid(column=0, row=9)
+        # var and buttons for a10
+        a10=StringVar()
+        a10.set(None)
+        List=ansListDict["Q10"]
+        a10LB=Listbox(q10Frame, selectmode="multiple")
+        a10LB.grid(column=0, row=1)
+        for item in List:
+            a10LB.insert(END, item)
+        # updates a9LB
+        def q10Updater(newAns):
+            ansListDict["Q10"].append(newAns)
+            a10LB.insert(END, newAns)
+            resetScrollBar()
         # entry box for q10
-        q10entry=Entry(q10Frame, width=150)
+        q10entry=Entry(q10Frame, width=50)
         q10entry.grid(column=0,row=0)
+        q10AddButton=Button(q10Frame, text="Add", command=lambda: q10Updater(q10entry.get())).grid(column=7, row=0)
         # frame for q11
-        q11Frame=LabelFrame(top, text="Q11: What did you learn as a result of being involved with FCIB?")
+        q11Frame=LabelFrame(secondFrame, text="Q11: What did you learn as a result of being involved with FCIB?")
         q11Frame.grid(column=0, row=10)
+        # var and buttons for a11
+        a11=StringVar()
+        a11.set(None)
+        List=ansListDict["Q11"]
+        a11LB=Listbox(q11Frame, selectmode="multiple")
+        a11LB.grid(column=0, row=1)
+        for item in List:
+            a11LB.insert(END, item)
+        # updates a9LB
+        def q11Updater(newAns):
+            ansListDict["Q11"].append(newAns)
+            a11LB.insert(END, newAns)
+            resetScrollBar()
         # entry box for q11
-        q11entry=Entry(q11Frame, width=150)
+        q11entry=Entry(q11Frame, width=50)
         q11entry.grid(column=0,row=0)
+        q11AddButton=Button(q11Frame, text="Add", command=lambda: q11Updater(q11entry.get())).grid(column=7, row=0)
         # frame and buttons for q12
         a12=StringVar()
         a12.set(None)
-        q12Frame=LabelFrame(top, text="Q12: Did you increase your knowlage about personal finance?")
+        q12Frame=LabelFrame(secondFrame, text="Q12: Did you increase your knowlage about personal finance?")
         q12Frame.grid(column=0, row=11)
         yButton12=Radiobutton(q12Frame, text="Yes", variable=a12, value="Yes").grid(column=0, row=0)
         nButton12=Radiobutton(q12Frame, text="No", variable=a12, value="No").grid(column=1, row=0)
         # frame and buttons for q13
         a13=StringVar()
         a13.set(None)
-        q13Frame=LabelFrame(top, text="Q13: Do you plan to go on to college or higher education?")
+        q13Frame=LabelFrame(secondFrame, text="Q13: Do you plan to go on to college or higher education?")
         q13Frame.grid(column=0, row=12)
         yButton13=Radiobutton(q13Frame, text="Yes", variable=a13, value="Yes").grid(column=0, row=0)
         nButton13=Radiobutton(q13Frame, text="Yes", variable=a13, value="No").grid(column=1, row=0)
         # frame for q14
-        q14Frame=LabelFrame(top, text="Q14: How would you improve FICB?")
+        q14Frame=LabelFrame(secondFrame, text="Q14: How would you improve FICB?")
         q14Frame.grid(column=0, row=13)
+        # var and buttons for a14
+        a14=StringVar()
+        a14.set(None)
+        List=ansListDict["Q14"]
+        a14LB=Listbox(q14Frame, selectmode="multiple")
+        a14LB.grid(column=0, row=1)
+        for item in List:
+            a14LB.insert(END, item)
+        # updates a14LB
+        def q14Updater(newAns):
+            ansListDict["Q14"].append(newAns)
+            a14LB.insert(END, newAns)
+            resetScrollBar()
         # entry box for q14
-        q14entry=Entry(q14Frame, width=150)
+        q14entry=Entry(q14Frame, width=50)
         q14entry.grid(column=0,row=0)
+        q14AddButton=Button(q14Frame, text="Add", command=lambda: q14Updater(q14entry.get())).grid(column=7, row=0)
         # frame and buttons for q15
         a15=StringVar()
         a15.set(None)
-        q15Frame=LabelFrame(top, text="Q15: Do you have an account at a bank")
+        q15Frame=LabelFrame(secondFrame, text="Q15: Do you have an account at a bank")
         q15Frame.grid(column=0, row=14)
         yButton15=Radiobutton(q15Frame, text="Yes", variable=a15, value="Yes").grid(column=0, row=0)
         nButton15=Radiobutton(q15Frame, text="No", variable=a15, value="No").grid(column=1, row=0)
         # frame for q16
         # TODO:
         #     write out whole question
-        q16Frame=LabelFrame(top, text="Q16: Please describe how others in the community are aware ...")
+        q16Frame=LabelFrame(secondFrame, text="Q16: Please describe how others in the community are aware ...")
         q16Frame.grid(column=0, row=15)
+        # var and buttons for a16
+        a16=StringVar()
+        a16.set(None)
+        List=ansListDict["Q16"]
+        a16LB=Listbox(q16Frame, selectmode="multiple")
+        a16LB.grid(column=0, row=1)
+        for item in List:
+            a16LB.insert(END, item)
+        # updates a16LB
+        def q14Updater(newAns):
+            ansListDict["Q16"].append(newAns)
+            a16LB.insert(END, newAns)
+            resetScrollBar()
         # entry box for q16
-        q16entry=Entry(q16Frame, width=150)
+        q16entry=Entry(q16Frame, width=50)
         q16entry.grid(column=0,row=0)
+        q16AddButton=Button(q16Frame, text="Add", command=lambda: q16Updater(q16entry.get())).grid(column=7, row=0)
         # frame for q17
-        q17Frame=LabelFrame(top, text="Q17: Share your email if you want")
+        q17Frame=LabelFrame(secondFrame, text="Q17: Share your email if you want")
         q17Frame.grid(column=0, row=16)
+        # var and buttons for a17
+        a17=StringVar()
+        a17.set(None)
+        FRQbutton("Q17", q17Frame, a17)
         # entry box for q17
-        q17entry=Entry(q17Frame, width=150)
+        q17entry=Entry(q17Frame, width=50)
         q17entry.grid(column=0,row=0)
+        q17AddButton=Button(q17Frame, text="Add", command=lambda: updateAnsList(q17entry.get(), "Q17", q17Frame, a17)).grid(column=7, row=0)
         # frame for q18
-        q18Frame=LabelFrame(top, text="Q18: Bonus: what stock would you recommend to invest in for the next year?")
+        q18Frame=LabelFrame(secondFrame, text="Q18: Bonus: what stock would you recommend to invest in for the next year?")
         q18Frame.grid(column=0, row=17)
+        # var and buttons for a18
+        a18=StringVar()
+        a18.set(None)
+        FRQbutton("Q18", q18Frame, a18)
         # entry box for q18
-        q18entry=Entry(q18Frame, width=150)
+        q18entry=Entry(q18Frame, width=50)
         q18entry.grid(column=0,row=0)
-    eSetUp()
-
+        q18AddButton=Button(q18Frame, text="Add", command=lambda: updateAnsList(q18entry.get(), "Q18", q18Frame, a18)).grid(column=7, row=0)
     # makes done button
-    doneButton=Button(top, text="Done", command=top.destroy)
+    doneButton=Button(secondFrame, text="Done", command=top.destroy)
     doneButton.grid(column=2, row=7)
 
 # makes button to open answer creator
@@ -382,6 +591,10 @@ ACButton=Button(root, text="Add New Student", command=openAnswerCreator)
 ACButton.grid(column=1, row=0)
 
 # summary window
+# TODO:
+#    make email saving fxn
+#    make options page
+#    limit number of free responses shown
 def openSummaryCreator():
     global ansSets, savingDirString, setName
     # set up
@@ -406,7 +619,8 @@ def openSummaryCreator():
     # TODO:
     #   stich together plots and texts
     def summarize(name):
-        dirPath=os.path.join("Answer_Sets", name)
+        dirName=name
+        dirPath=os.path.join("Answer_Sets", dirName)
         # make a dir for the summary and its files
         os.chdir(dirPath)
         if not "Summary" in os.listdir():
@@ -422,7 +636,7 @@ def openSummaryCreator():
             return ax
         CB_color_cycle = ['#377eb8', '#ff7f00', '#4daf4a', '#f781bf', '#a65628', '#984ea3', '#999999', '#e41a1c', '#dede00']
         # fxn to make DF from jsons
-        def makeDF(name):
+        def makeDF(dirName):
             dirPath=os.path.join("Answer_Sets", name)
             os.chdir(dirPath)
             # DF is horizontal
@@ -535,6 +749,7 @@ def openSummaryCreator():
             plotter()
         classesSummary()
         # make plot of numerical questions
+        # TODO: fix colors
         def numSummary(plotFile=os.path.join("Summary", "NumbersPlot.pdf"), fsize=15):
             # preparation question
             prep=bigDF["Q4"]
@@ -616,9 +831,9 @@ def openSummaryCreator():
             plt.tight_layout()
             plt.savefig(plotFile)
         numSummary()
-        # gets free response data and saves it as a .txt
+        # gets free response data and returns a dict {response, int(times), ...}
         # data is bigDF["QX"]
-        def freqList(data, fileName):
+        def freqList(data):
             # list of all responses
             dataList=list(data)
             dataDict={}
@@ -633,24 +848,8 @@ def openSummaryCreator():
                 else:
                     dataDict[name]+=1
             # sort highest count -> lowest
-            dataDict=dict(sorted(dataDict.items(), key=lambda item: item[1], reverse=True))
-            # save as filename
-            with open(fileName, "w") as file:
-                for key in dataDict.keys():
-                    if dataDict[key]!=1:
-                        file.write(key+" (x "+str(dataDict[key])+")\n")
-                    else:
-                        file.write(key+"\n")
-        # make .txt for the free response questions
-        freqList(bigDF["Q8"], os.path.join("Summary", "Prepare.txt"))
-        freqList(bigDF["Q9"], os.path.join("Summary", "Enjoy.txt"))
-        freqList(bigDF["Q10"], os.path.join("Summary", "NotEnjoy.txt"))
-        freqList(bigDF["Q11"], os.path.join("Summary", "Learn.txt"))
-        freqList(bigDF["Q14"], os.path.join("Summary", "Improve.txt"))
-        freqList(bigDF["Q16"], os.path.join("Summary", "Participation.txt"))
-        freqList(bigDF["Q17"], os.path.join("Summary", "Email.txt"))
-        freqList(bigDF["Q18"], os.path.join("Summary", "Stock.txt"))
-
+            dataDict=dict(sorted(dataDict.items(), key=lambda item: item[1], reverse=True))            
+            return dataDict
         # make plot for y/n questions
         def ynSummary(plotFile=os.path.join("Summary", "YesNoPlot.pdf"), fsize=15):
             # increase knowlage question
@@ -702,6 +901,7 @@ def openSummaryCreator():
         # makes the latex pdf
         # needs MiKTeX
         #   needs to be updated after installatiion
+        #   needs to add float package
         def pdfMaker(name):
             plotWidth="10cm"
             os.chdir("Summary")
@@ -709,29 +909,66 @@ def openSummaryCreator():
             geometry_options = {"right": "2cm", "left": "2cm"}
             # make LaTeX doc
             doc=Document(geometry_options=geometry_options)
+            doc.packages.append(Package("float"))
             # insert age/school plot
             with doc.create(Section("Distribution of ages in participating schools")):
-                with doc.create(Figure(position="h!")) as plot1:
+                with doc.create(Figure(position="H")) as plot1:
                     plot1.add_image("AgeDistributionPlot.pdf", width=plotWidth)
             # insert classes taken plot
             with doc.create(Section("Classes taken by participants")):
-                with doc.create(Figure(position="h!")) as plot2:
+                with doc.create(Figure(position="!htb")) as plot2:
                     plot2.add_image("ClassesTakenPlot.pdf", width=plotWidth)
             # insert number response plot
             with doc.create(Section("Numerical Questions")):
-                with doc.create(Figure(position="h!")) as plot3:
+                with doc.create(Figure(position="!htb")) as plot3:
                     plot3.add_image("NumbersPlot.pdf", width=plotWidth)
             # insert y/n response plot
             with doc.create(Section("Yes / No Questions")):
-                with doc.create(Figure(position="h!")) as plot4:
+                with doc.create(Figure(position="!htb")) as plot4:
                     plot4.add_image("YesNoPlot.pdf", width=plotWidth)
-            
+            # insert how ppl studided list
+            with doc.create(Section("How Students Prepared")):
+                with doc.create(Itemize()) as itemize:
+                    Dict=freqList(bigDF["Q8"])
+                    for key in Dict:
+                        itemize.add_item(key+": (x"+str(Dict[key])+")")
+            # insert what ppl enjoyed list
+            with doc.create(Section("What Students Enjoyed The Most")):
+                with doc.create(Itemize()) as itemize:
+                    Dict=freqList(bigDF["Q9"])
+                    for key in Dict:
+                        itemize.add_item(key+": (x"+str(Dict[key])+")")
+            # insert what ppl enjoyed least list
+            with doc.create(Section("What Students Enjoyed The Least")):
+                with doc.create(Itemize()) as itemize:
+                    Dict=freqList(bigDF["Q10"])
+                    for key in Dict:
+                        itemize.add_item(key+": (x"+str(Dict[key])+")")
+            # insert what ppl learned list
+            with doc.create(Section("What Students Learned")):
+                with doc.create(Itemize()) as itemize:
+                    Dict=freqList(bigDF["Q11"])
+                    for key in Dict:
+                        itemize.add_item(key+": (x"+str(Dict[key])+")")
+            # insert how ppl would improve list
+            with doc.create(Section("How Students Would Improve FICB")):
+                with doc.create(Itemize()) as itemize:
+                    Dict=freqList(bigDF["Q14"])
+                    for key in Dict:
+                        itemize.add_item(key+": (x"+str(Dict[key])+")")
+            # insert what ppl are aware of list
+            with doc.create(Section("How Others in the Students'Communities are Aware of their Participation")):
+                with doc.create(Itemize()) as itemize:
+                    Dict=freqList(bigDF["Q16"])
+                    for key in Dict:
+                        itemize.add_item(key+": (x"+str(Dict[key])+")")
+            # insert stock list
+            with doc.create(Section("What Stock Students Suggest to Buy")):
+                with doc.create(Itemize()) as itemize:
+                    Dict=freqList(bigDF["Q18"])
+                    for key in Dict:
+                        itemize.add_item(key+": (x"+str(Dict[key])+")")
             # generate pdf
-            # No LaTex compiler was found
-            # Either specify a LaTex compiler or make sure you have latexmk or pdfLaTex installed.
-            # TODO:
-            #     fix name of summary pdf i.e. "testSet1Summary.pdf"
-            #     delete extra documents
             doc.generate_pdf("Summary_of_"+name, clean=True, clean_tex=True, compiler="pdfLatex")
             # return to set dir i.e. "testSet1"
             os.chdir("..")
@@ -748,7 +985,8 @@ def openSummaryCreator():
         global savingDirString
         savingDirString=str(value)
         # create the button to execute the summary
-        sumButton=Button(top, text="Summarize", command=lambda: summarize(name=savingDirString))
+        sumButton=Button(top, text="Summarize", command=lambda: summarize(name=value))
+        # sumButton=Button(top, text="Summarize", command=lambda: summarize(name=savingDirString))
         sumButton.grid(column=2, row=0)
     
     # makes the buttons
