@@ -1,9 +1,5 @@
 # TODO:
-#   help screen
-#   tutorial screen
-#   graph options
 #   make scrollbar always work
-#   change background / frame colors to make it more readable
 
 import json, os, matplotlib
 import numpy as np
@@ -30,14 +26,18 @@ if "Answer_Sets" not in dirList:
 
 # starting window basics
 root=Tk()
+root.configure(bg="WhiteSmoke")
+root.iconbitmap("abIcon.ico")
 root.title("Asset Builders Quiz Bowl")
-quitButton=Button(root, text="Exit", command=root.quit)
+quitButton=Button(root, text="Exit", command=root.quit, bg="coral")
 quitButton.grid(column=3, row=0)
 
 # text editor window
 def textEditor():
     # window basics
     window=Toplevel()
+    window.configure(bg="WhiteSmoke")
+    window.iconbitmap("abIcon.ico")
     window.title=("Answer Editor")
     window.rowconfigure(0, minsize=800, weight=1)
     window.columnconfigure(1, minsize=800, weight=1)
@@ -70,24 +70,24 @@ def textEditor():
     txt_edit.grid(row=0, column=1, sticky="nsew")
     
     # makes button frame and places buttons in the frame
-    buttonFrame = Frame(window, bd=2)
-    openButton=Button(buttonFrame, text="Open a File", command=openFile)
+    buttonFrame = Frame(window, bd=2, bg="ghost white")
+    openButton=Button(buttonFrame, text="Open a File", command=openFile, bg="DeepSkyBlue2")
     openButton.grid(column=0, row=0, sticky="ew")
 
-    saveButton=Button(buttonFrame, text="Save As ...", command=saveFile)
+    saveButton=Button(buttonFrame, text="Save As ...", command=saveFile, bg="DarkSeaGreen")
     saveButton.grid(column=0, row=1, sticky="ew")
     
-    doneButton=Button(buttonFrame, text="Done", command=window.destroy)
+    doneButton=Button(buttonFrame, text="Done", command=window.destroy, bg="coral")
     doneButton.grid(column=0, row=2, sticky="ew")
     
     buttonFrame.grid(column=0, row=0, sticky="ns")
 
 # button to open answer editor
-editButton=Button(root, text="Edit An Answer", command=textEditor)
+editButton=Button(root, text="Edit An Answer", command=textEditor, bg="orchid1")
 editButton.grid(column=1, row=1)
 
 # frame for list of answer sets
-ansFrame=LabelFrame(root, text="Answer Sets", padx=25, pady=5)
+ansFrame=LabelFrame(root, text="Answer Sets", padx=25, pady=5, bg="ghost white")
 ansFrame.grid(column=0, row=0, padx=10, pady=2)
 
 # fxn to populate a file frame
@@ -96,10 +96,9 @@ def frameSetUp(frameName):
     os.chdir("Answer_Sets")
     ansSets=os.listdir()
     for set in ansSets:
-        Label(frameName, text=set).pack(anchor=W)
+        Label(frameName, text=set, bg="ghost white").pack(anchor=W)
     os.chdir("..")
 frameSetUp(ansFrame)
-
 
 # refreshes the file frame
 def refresh():
@@ -114,8 +113,7 @@ def refresh():
     os.chdir("..")
 
 # make refresh button
-# ?? might not need ??
-refButton=Button(root, text="Refresh", command=refresh)
+refButton=Button(root, text="Refresh", command=refresh, bg="ghost white")
 refButton.grid(column=0, row=1)
 
 # fxn to create new ans sets
@@ -127,13 +125,13 @@ def newSet(name):
     refresh()
 
 # makes frame, entry slot and button to make new ans sets
-nsFrame=LabelFrame(root, text="Create New Set", padx=25, pady=5)
+nsFrame=LabelFrame(root, text="Create New Set", padx=25, pady=5, bg="ghost white")
 nsFrame.grid(column=0, row=2)
 nsEntry=Entry(nsFrame, width=20)
 nsEntry.grid(column=0,row=0)
 nsEntry.insert(0,"Set Name")
-nsButton=Button(nsFrame, text="Create", command=lambda: newSet(nsEntry.get()))
-nsButton.grid(column=0, row=1, sticky="ns")
+nsButton=Button(root, text="Create", command=lambda: newSet(nsEntry.get()), bg="ghost white")
+nsButton.grid(column=0, row=3, sticky="ns")
 
 # vars path stuff
 savingDirString=""
@@ -145,6 +143,8 @@ def openAnswerCreator():
     # window set up
     # TODO: make scrollbar work without dragging the window to the top
     top=Toplevel()
+    top.iconbitmap("abIcon.ico")
+    top.configure(bg="WhiteSmoke")
     top.state("zoomed")
     top.title("Answer Entry")
     # make scroll bar
@@ -172,7 +172,7 @@ def openAnswerCreator():
     # global vars
     global a1, a2, a3, a3LB, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, ansSets, savingDirString, setName
     # makes frame to select which set to save into
-    setFrame=LabelFrame(secondFrame, text="Answer Sets", height=500, width=100, padx=5, pady=2)
+    setFrame=LabelFrame(secondFrame, text="Answer Sets", height=500, width=100, padx=5, pady=2, bg="WhiteSmoke")
     setFrame.grid(column=1, row=0, padx=10, pady=2, rowspan=18)
     # makes variables for the saving set as a string var
     setName=StringVar()
@@ -199,7 +199,7 @@ def openAnswerCreator():
         # makes entry frame
         eSetUp()
         # makes save button
-        saveButton=Button(secondFrame, text="Save Answers", command=lambda: saveEntries(fnameEntry.get()))
+        saveButton=Button(secondFrame, text="Save Answers", command=lambda: saveEntries(fnameEntry.get()), bg="DarkSeaGreen")
         saveButton.grid(column=2, row=5)
         resetScrollBar()
     # saves text from entries in AD as a json
@@ -282,7 +282,7 @@ def openAnswerCreator():
     # makes the answer set radio buttons
     rowNum=0
     for aset in ansSets:
-        Radiobutton(setFrame, text=aset, variable=setName, value=aset, command=lambda: click(setName.get())).grid(column=0, row=rowNum, sticky="W")
+        Radiobutton(setFrame, text=aset, variable=setName, value=aset, command=lambda: click(setName.get()), bg="ghost white").grid(column=0, row=rowNum, sticky="W")
         rowNum+=1
     # fxn that sets up entries
     # TODO:
@@ -299,7 +299,7 @@ def openAnswerCreator():
             rowNum=1
             if question!="Q3":
                 for ans in ansListDict[question]:
-                    Radiobutton(frame, text=ans, variable=var, value=ans).grid(column=colNum, row=rowNum, sticky="w")
+                    Radiobutton(frame, text=ans, variable=var, value=ans, bg="ghost white").grid(column=colNum, row=rowNum, sticky="w")
                     colNum+=1
                     if colNum==2:
                         colNum=0
@@ -377,7 +377,7 @@ def openAnswerCreator():
             entryDict[question]=Entry(frame, width=hsize)
             entryDict[question].grid(column=0, row=0)
         # frame for q1
-        q1Frame=LabelFrame(secondFrame, text="Q1: what school did you attend?")
+        q1Frame=LabelFrame(secondFrame, text="Q1: what school did you attend?", bg="ghost white")
         q1Frame.grid(column=0, row=0, sticky=W)
         # var and buttons for a1
         a1=StringVar()
@@ -386,18 +386,18 @@ def openAnswerCreator():
         # entry box for q1
         q1entry=Entry(q1Frame, width=50)
         q1entry.grid(column=0,row=0)
-        q1AddButton=Button(q1Frame, text="Add", command=lambda: updateAnsList(q1entry.get(), "Q1", q1Frame, a1)).grid(column=1, row=0)
+        q1AddButton=Button(q1Frame, text="Add", command=lambda: updateAnsList(q1entry.get(), "Q1", q1Frame, a1), bg="ghost white").grid(column=1, row=0)
         # frame and buttons for q2
         a2=StringVar()
         a2.set(None)
-        q2Frame=LabelFrame(secondFrame, text="Q2: what is your grade level?")
+        q2Frame=LabelFrame(secondFrame, text="Q2: what is your grade level?", bg="ghost white")
         q2Frame.grid(column=0, row=1, sticky=W)
-        fButton=Radiobutton(q2Frame, text="Freshman", variable=a2, value="Freshman").grid(column=0, row=0)
-        soButton=Radiobutton(q2Frame, text="Sophomore", variable=a2, value="Sophomer").grid(column=1, row=0)
-        jButton=Radiobutton(q2Frame, text="Junior", variable=a2, value="Junior").grid(column=2, row=0)
-        srButton=Radiobutton(q2Frame, text="Senior", variable=a2, value="Senior").grid(column=3, row=0)
+        fButton=Radiobutton(q2Frame, text="Freshman", variable=a2, value="Freshman", bg="ghost white").grid(column=0, row=0)
+        soButton=Radiobutton(q2Frame, text="Sophomore", variable=a2, value="Sophomer", bg="ghost white").grid(column=1, row=0)
+        jButton=Radiobutton(q2Frame, text="Junior", variable=a2, value="Junior", bg="ghost white").grid(column=2, row=0)
+        srButton=Radiobutton(q2Frame, text="Senior", variable=a2, value="Senior", bg="ghost white").grid(column=3, row=0)
         # frame for q3
-        q3Frame=LabelFrame(secondFrame, text="Q3: What classes are/have you take(n)")
+        q3Frame=LabelFrame(secondFrame, text="Q3: What classes are/have you take(n)", bg="ghost white")
         q3Frame.grid(column=0, row=2, sticky=W)
         List=ansListDict["Q3"]
         a3LB=Listbox(q3Frame, selectmode="multiple", height=len(List), exportselection=False)
@@ -419,49 +419,49 @@ def openAnswerCreator():
         # entry box for q3
         q3entry=Entry(q3Frame, width=50)
         q3entry.grid(column=0,row=0)
-        q3AddButton=Button(q3Frame, text="Add", command=lambda: q3Updater(q3entry.get())).grid(column=7, row=0)        
+        q3AddButton=Button(q3Frame, text="Add", command=lambda: q3Updater(q3entry.get()), bg="ghost white").grid(column=7, row=0)        
         # frame and buttons for q4
         a4=StringVar()
         a4.set(None)
-        q4Frame=LabelFrame(secondFrame, text="Q4: How well prepared were you for the questions?")
+        q4Frame=LabelFrame(secondFrame, text="Q4: How well prepared were you for the questions?", bg="ghost white")
         q4Frame.grid(column=0, row=3, sticky=W)
-        button41=Radiobutton(q4Frame, text="1", variable=a4, value="1").grid(column=0, row=0)
-        button42=Radiobutton(q4Frame, text="2", variable=a4, value="2").grid(column=1, row=0)
-        button43=Radiobutton(q4Frame, text="3", variable=a4, value="3").grid(column=2, row=0)
-        button44=Radiobutton(q4Frame, text="4", variable=a4, value="4").grid(column=3, row=0)
-        button45=Radiobutton(q4Frame, text="5", variable=a4, value="5").grid(column=4, row=0)
+        button41=Radiobutton(q4Frame, text="1", variable=a4, value="1", bg="ghost white").grid(column=0, row=0)
+        button42=Radiobutton(q4Frame, text="2", variable=a4, value="2", bg="ghost white").grid(column=1, row=0)
+        button43=Radiobutton(q4Frame, text="3", variable=a4, value="3", bg="ghost white").grid(column=2, row=0)
+        button44=Radiobutton(q4Frame, text="4", variable=a4, value="4", bg="ghost white").grid(column=3, row=0)
+        button45=Radiobutton(q4Frame, text="5", variable=a4, value="5", bg="ghost white").grid(column=4, row=0)
         # frame and buttons for q5
         a5=StringVar()
         a5.set(None)
-        q5Frame=LabelFrame(secondFrame, text="Q5: Does FICB content mirror what you learned in school?")
+        q5Frame=LabelFrame(secondFrame, text="Q5: Does FICB content mirror what you learned in school?", bg="ghost white")
         q5Frame.grid(column=0, row=4, sticky=W)
-        button51=Radiobutton(q5Frame, text="1", variable=a5, value="1").grid(column=0, row=0)
-        button52=Radiobutton(q5Frame, text="2", variable=a5, value="2").grid(column=1, row=0)
-        button53=Radiobutton(q5Frame, text="3", variable=a5, value="3").grid(column=2, row=0)
-        button54=Radiobutton(q5Frame, text="4", variable=a5, value="4").grid(column=3, row=0)
-        button55=Radiobutton(q5Frame, text="5", variable=a5, value="5").grid(column=4, row=0)
+        button51=Radiobutton(q5Frame, text="1", variable=a5, value="1", bg="ghost white").grid(column=0, row=0)
+        button52=Radiobutton(q5Frame, text="2", variable=a5, value="2", bg="ghost white").grid(column=1, row=0)
+        button53=Radiobutton(q5Frame, text="3", variable=a5, value="3", bg="ghost white").grid(column=2, row=0)
+        button54=Radiobutton(q5Frame, text="4", variable=a5, value="4", bg="ghost white").grid(column=3, row=0)
+        button55=Radiobutton(q5Frame, text="5", variable=a5, value="5", bg="ghost white").grid(column=4, row=0)
         # frame and buttons for q6
         a6=StringVar()
         a6.set(None)
-        q6Frame=LabelFrame(secondFrame, text="Q6: Was the competition format easy to understand?")
+        q6Frame=LabelFrame(secondFrame, text="Q6: Was the competition format easy to understand?", bg="ghost white")
         q6Frame.grid(column=0, row=5, sticky=W)
-        button61=Radiobutton(q6Frame, text="1", variable=a6, value="1").grid(column=0, row=0)
-        button62=Radiobutton(q6Frame, text="2", variable=a6, value="2").grid(column=1, row=0)
-        button63=Radiobutton(q6Frame, text="3", variable=a6, value="3").grid(column=2, row=0)
-        button64=Radiobutton(q6Frame, text="4", variable=a6, value="4").grid(column=3, row=0)
-        button65=Radiobutton(q6Frame, text="5", variable=a6, value="5").grid(column=4, row=0)
+        button61=Radiobutton(q6Frame, text="1", variable=a6, value="1", bg="ghost white").grid(column=0, row=0)
+        button62=Radiobutton(q6Frame, text="2", variable=a6, value="2", bg="ghost white").grid(column=1, row=0)
+        button63=Radiobutton(q6Frame, text="3", variable=a6, value="3", bg="ghost white").grid(column=2, row=0)
+        button64=Radiobutton(q6Frame, text="4", variable=a6, value="4", bg="ghost white").grid(column=3, row=0)
+        button65=Radiobutton(q6Frame, text="5", variable=a6, value="5", bg="ghost white").grid(column=4, row=0)
         # frame and buttons for q7
         a7=StringVar()
         a7.set(None)
-        q7Frame=LabelFrame(secondFrame, text="Q7: I studied the content at www.ficbonline.org")
+        q7Frame=LabelFrame(secondFrame, text="Q7: I studied the content at www.ficbonline.org", bg="ghost white")
         q7Frame.grid(column=0, row=6, sticky=W)
-        button71=Radiobutton(q7Frame, text="1", variable=a7, value="1").grid(column=0, row=0)
-        button72=Radiobutton(q7Frame, text="2", variable=a7, value="2").grid(column=1, row=0)
-        button73=Radiobutton(q7Frame, text="3", variable=a7, value="3").grid(column=2, row=0)
-        button74=Radiobutton(q7Frame, text="4", variable=a7, value="4").grid(column=3, row=0)
-        button75=Radiobutton(q7Frame, text="5", variable=a7, value="5").grid(column=4, row=0)
+        button71=Radiobutton(q7Frame, text="1", variable=a7, value="1", bg="ghost white").grid(column=0, row=0)
+        button72=Radiobutton(q7Frame, text="2", variable=a7, value="2", bg="ghost white").grid(column=1, row=0)
+        button73=Radiobutton(q7Frame, text="3", variable=a7, value="3", bg="ghost white").grid(column=2, row=0)
+        button74=Radiobutton(q7Frame, text="4", variable=a7, value="4", bg="ghost white").grid(column=3, row=0)
+        button75=Radiobutton(q7Frame, text="5", variable=a7, value="5", bg="ghost white").grid(column=4, row=0)
         # frame for q8
-        q8Frame=LabelFrame(secondFrame, text="Q8: How did you prepare for the competition?")
+        q8Frame=LabelFrame(secondFrame, text="Q8: How did you prepare for the competition?", bg="ghost white")
         q8Frame.grid(column=0, row=7, sticky=W)
         # var and buttons for a8
         a8=StringVar()
@@ -486,9 +486,9 @@ def openAnswerCreator():
         # entry box for q8
         q8entry=Entry(q8Frame, width=50)
         q8entry.grid(column=0,row=0)
-        q8AddButton=Button(q8Frame, text="Add", command=lambda: q8Updater(q8entry.get())).grid(column=7, row=0)
+        q8AddButton=Button(q8Frame, text="Add", command=lambda: q8Updater(q8entry.get()), bg="ghost white").grid(column=7, row=0)
         # frame for q9
-        q9Frame=LabelFrame(secondFrame, text="Q9: What did you enjoy most about the competition?")
+        q9Frame=LabelFrame(secondFrame, text="Q9: What did you enjoy most about the competition?", bg="ghost white")
         q9Frame.grid(column=0, row=8, sticky=W)
         # var and buttons for a9
         a9=StringVar()
@@ -513,9 +513,9 @@ def openAnswerCreator():
         # entry box for q9
         q9entry=Entry(q9Frame, width=50)
         q9entry.grid(column=0,row=0)
-        q9AddButton=Button(q9Frame, text="Add", command=lambda: q9Updater(q9entry.get())).grid(column=7, row=0)
+        q9AddButton=Button(q9Frame, text="Add", command=lambda: q9Updater(q9entry.get()), bg="ghost white").grid(column=7, row=0)
         # frame for q10
-        q10Frame=LabelFrame(secondFrame, text="Q10: What did you enjoy least about the competition?")
+        q10Frame=LabelFrame(secondFrame, text="Q10: What did you enjoy least about the competition?", bg="ghost white")
         q10Frame.grid(column=0, row=9, sticky=W)
         # var and buttons for a10
         a10=StringVar()
@@ -540,9 +540,9 @@ def openAnswerCreator():
         # entry box for q10
         q10entry=Entry(q10Frame, width=50)
         q10entry.grid(column=0,row=0)
-        q10AddButton=Button(q10Frame, text="Add", command=lambda: q10Updater(q10entry.get())).grid(column=7, row=0)
+        q10AddButton=Button(q10Frame, text="Add", command=lambda: q10Updater(q10entry.get()), bg="ghost white").grid(column=7, row=0)
         # frame for q11
-        q11Frame=LabelFrame(secondFrame, text="Q11: What did you learn as a result of being involved with FCIB?")
+        q11Frame=LabelFrame(secondFrame, text="Q11: What did you learn as a result of being involved with FCIB?", bg="ghost white")
         q11Frame.grid(column=0, row=10, sticky=W)
         # var and buttons for a11
         a11=StringVar()
@@ -567,23 +567,23 @@ def openAnswerCreator():
         # entry box for q11
         q11entry=Entry(q11Frame, width=50)
         q11entry.grid(column=0,row=0)
-        q11AddButton=Button(q11Frame, text="Add", command=lambda: q11Updater(q11entry.get())).grid(column=7, row=0)
+        q11AddButton=Button(q11Frame, text="Add", command=lambda: q11Updater(q11entry.get()), bg="ghost white").grid(column=7, row=0)
         # frame and buttons for q12
         a12=StringVar()
         a12.set(None)
-        q12Frame=LabelFrame(secondFrame, text="Q12: Did you increase your knowlage about personal finance?")
+        q12Frame=LabelFrame(secondFrame, text="Q12: Did you increase your knowlage about personal finance?", bg="ghost white")
         q12Frame.grid(column=0, row=11, sticky=W)
-        yButton12=Radiobutton(q12Frame, text="Yes", variable=a12, value="Yes").grid(column=0, row=0)
-        nButton12=Radiobutton(q12Frame, text="No", variable=a12, value="No").grid(column=1, row=0)
+        yButton12=Radiobutton(q12Frame, text="Yes", variable=a12, value="Yes", bg="ghost white").grid(column=0, row=0)
+        nButton12=Radiobutton(q12Frame, text="No", variable=a12, value="No", bg="ghost white").grid(column=1, row=0)
         # frame and buttons for q13
         a13=StringVar()
         a13.set(None)
-        q13Frame=LabelFrame(secondFrame, text="Q13: Do you plan to go on to college or higher education?")
+        q13Frame=LabelFrame(secondFrame, text="Q13: Do you plan to go on to college or higher education?", bg="ghost white")
         q13Frame.grid(column=0, row=12, sticky=W)
-        yButton13=Radiobutton(q13Frame, text="Yes", variable=a13, value="Yes").grid(column=0, row=0)
-        nButton13=Radiobutton(q13Frame, text="Yes", variable=a13, value="No").grid(column=1, row=0)
+        yButton13=Radiobutton(q13Frame, text="Yes", variable=a13, value="Yes", bg="ghost white").grid(column=0, row=0)
+        nButton13=Radiobutton(q13Frame, text="Yes", variable=a13, value="No", bg="ghost white").grid(column=1, row=0)
         # frame for q14
-        q14Frame=LabelFrame(secondFrame, text="Q14: How would you improve FICB?")
+        q14Frame=LabelFrame(secondFrame, text="Q14: How would you improve FICB?", bg="ghost white")
         q14Frame.grid(column=0, row=13, sticky=W)
         # var and buttons for a14
         a14=StringVar()
@@ -608,18 +608,18 @@ def openAnswerCreator():
         # entry box for q14
         q14entry=Entry(q14Frame, width=50)
         q14entry.grid(column=0,row=0)
-        q14AddButton=Button(q14Frame, text="Add", command=lambda: q14Updater(q14entry.get())).grid(column=7, row=0)
+        q14AddButton=Button(q14Frame, text="Add", command=lambda: q14Updater(q14entry.get()), bg="ghost white").grid(column=7, row=0)
         # frame and buttons for q15
         a15=StringVar()
         a15.set(None)
-        q15Frame=LabelFrame(secondFrame, text="Q15: Do you have an account at a bank")
+        q15Frame=LabelFrame(secondFrame, text="Q15: Do you have an account at a bank", bg="ghost white")
         q15Frame.grid(column=0, row=14, sticky=W)
-        yButton15=Radiobutton(q15Frame, text="Yes", variable=a15, value="Yes").grid(column=0, row=0)
-        nButton15=Radiobutton(q15Frame, text="No", variable=a15, value="No").grid(column=1, row=0)
+        yButton15=Radiobutton(q15Frame, text="Yes", variable=a15, value="Yes", bg="ghost white").grid(column=0, row=0)
+        nButton15=Radiobutton(q15Frame, text="No", variable=a15, value="No", bg="ghost white").grid(column=1, row=0)
         # frame for q16
         # TODO:
         #     write out whole question
-        q16Frame=LabelFrame(secondFrame, text="Q16: Please describe how others in the community are aware ...")
+        q16Frame=LabelFrame(secondFrame, text="Q16: Please describe how others in the community are aware ...", bg="ghost white")
         q16Frame.grid(column=0, row=15, sticky=W)
         # var and buttons for a16
         a16=StringVar()
@@ -644,9 +644,9 @@ def openAnswerCreator():
         # entry box for q16
         q16entry=Entry(q16Frame, width=50)
         q16entry.grid(column=0,row=0)
-        q16AddButton=Button(q16Frame, text="Add", command=lambda: q16Updater(q16entry.get())).grid(column=7, row=0)
+        q16AddButton=Button(q16Frame, text="Add", command=lambda: q16Updater(q16entry.get()), bg="ghost white").grid(column=7, row=0)
         # frame for q17
-        q17Frame=LabelFrame(secondFrame, text="Q17: Share your email if you want")
+        q17Frame=LabelFrame(secondFrame, text="Q17: Share your email if you want", bg="ghost white")
         q17Frame.grid(column=0, row=16, sticky=W)
         # var and buttons for a17
         a17=StringVar()
@@ -655,7 +655,7 @@ def openAnswerCreator():
         q17entry=Entry(q17Frame, width=50)
         q17entry.grid(column=0,row=0)
         # frame for q18
-        q18Frame=LabelFrame(secondFrame, text="Q18: Bonus: what stock would you recommend to invest in for the next year?")
+        q18Frame=LabelFrame(secondFrame, text="Q18: Bonus: what stock would you recommend to invest in for the next year?", bg="ghost white")
         q18Frame.grid(column=0, row=17, sticky=W)
         # var and buttons for a18
         a18=StringVar()
@@ -680,45 +680,46 @@ def openAnswerCreator():
         # entry box for q18
         q18entry=Entry(q18Frame, width=50)
         q18entry.grid(column=0,row=0)
-        q18AddButton=Button(q18Frame, text="Add", command=lambda: q18Updater(q18entry.get())).grid(column=7, row=0)
+        q18AddButton=Button(q18Frame, text="Add", command=lambda: q18Updater(q18entry.get()), bg="ghost white").grid(column=7, row=0)
 
         LBDict={"Q3":a3LB, "Q8":a8LB, "Q9":a9LB, "Q10":a10LB, "Q11":a11LB, "Q14":a14LB, "Q16":a16LB, "Q18":a18LB}
         entryDict={"Q1": q1entry, "Q3":q3entry, "Q8":q8entry, "Q9":q9entry, "Q10":q10entry, "Q11":q11entry, "Q14":a14LB, "Q16":a16LB, "Q18":a18LB}
 
     # makes done button
-    doneButton=Button(secondFrame, text="Done", command=top.destroy)
+    doneButton=Button(secondFrame, text="Done", command=top.destroy, bg="coral")
     doneButton.grid(column=2, row=7)
 
     # makes help page
     def openAddHelp():
         aHelp=Toplevel()
+        aHelp.iconbitmap("abIcon.ico")
+        aHelp.configure(bg="WhiteSmoke")
         aHelp.title("Help")
-        aHelpDoneButton=Button(aHelp, text="Done", command=aHelp.destroy).grid(column=1, row=0)
+        aHelpDoneButton=Button(aHelp, text="Done", command=aHelp.destroy, bg="coral").grid(column=1, row=0)
         
-        stepFrame=LabelFrame(aHelp, text="Adding a new answer sheet", padx=5, pady=5)
+        stepFrame=LabelFrame(aHelp, text="Adding a new answer sheet", padx=5, pady=5, bg="ghost white")
         stepFrame.grid(column=0, row=0)
-        Label(stepFrame, text="1) Click the button corresponding to the group that the answer sheet belongs to").pack(anchor=W)
-        Label(stepFrame, text="Question 1:").pack(anchor=W)
-        Label(stepFrame, text="    -If the school is not on the screen, type it into the entry box and press 'Add'").pack(anchor=W)
-        Label(stepFrame, text="    -IF the school is on the screen, press the button corresponding to it").pack(anchor=W)
-        Label(stepFrame, text="Question 2, 4, 5, 6, 7, 12, 13, 15:").pack(anchor=W)
-        Label(stepFrame, text="    -Press the button corresponding to the answer").pack(anchor=W)
-        Label(stepFrame, text="Question 3, 8, 9, 10, 11, 14, 16, 18:").pack(anchor=W)
-        Label(stepFrame, text="    -If the answer is not on the screen, type it into the entry box and press 'Add', repeat as necessary").pack(anchor=W)
-        Label(stepFrame, text="    -eg) If the student puts Accounting and Personal Finance as their answer to question 3:").pack(anchor=W)
-        Label(stepFrame, text="        -Type in 'Accounting' then press 'Add' then type in 'Personal Finance' then press add").pack(anchor=W)
-        Label(stepFrame, text="        -Then click both of them").pack(anchor=W)
-        Label(stepFrame, text="    -After all answers are on the screen, click them so that they are highlighted").pack(anchor=W)
-        Label(stepFrame, text="Question 17:").pack(anchor=W)
-        Label(stepFrame, text="    -Type the email address into the enty box").pack(anchor=W)
-        Label(stepFrame, text="Note: If no answer is provided for any question, leave it blank").pack(anchor=W)
-        Label(stepFrame, text="2) When all answers are entered, press 'Save Anwers'").pack(anchor=W)
+        Label(stepFrame, text="1) Click the button corresponding to the group that the answer sheet belongs to", bg="ghost white").pack(anchor=W)
+        Label(stepFrame, text="Question 1:", bg="ghost white").pack(anchor=W)
+        Label(stepFrame, text="    -If the school is not on the screen, type it into the entry box and press 'Add'", bg="ghost white").pack(anchor=W)
+        Label(stepFrame, text="    -IF the school is on the screen, press the button corresponding to it", bg="ghost white").pack(anchor=W)
+        Label(stepFrame, text="Question 2, 4, 5, 6, 7, 12, 13, 15:", bg="ghost white").pack(anchor=W)
+        Label(stepFrame, text="    -Press the button corresponding to the answer", bg="ghost white").pack(anchor=W)
+        Label(stepFrame, text="Question 3, 8, 9, 10, 11, 14, 16, 18:", bg="ghost white").pack(anchor=W)
+        Label(stepFrame, text="    -If the answer is not on the screen, type it into the entry box and press 'Add', repeat as necessary", bg="ghost white").pack(anchor=W)
+        Label(stepFrame, text="    -eg) If the student puts Accounting and Personal Finance as their answer to question 3:", bg="ghost white").pack(anchor=W)
+        Label(stepFrame, text="        -Type in 'Accounting' then press 'Add' then type in 'Personal Finance' then press add", bg="ghost white").pack(anchor=W)
+        Label(stepFrame, text="        -Then click both of them", bg="ghost white").pack(anchor=W)
+        Label(stepFrame, text="    -After all answers are on the screen, click them so that they are highlighted", bg="ghost white").pack(anchor=W)
+        Label(stepFrame, text="Question 17:", bg="ghost white").pack(anchor=W)
+        Label(stepFrame, text="    -Type the email address into the enty box", bg="ghost white").pack(anchor=W)
+        Label(stepFrame, text="Note: If no answer is provided for any question, leave it blank", bg="ghost white").pack(anchor=W)
+        Label(stepFrame, text="2) When all answers are entered, press 'Save Anwers'", bg="ghost white").pack(anchor=W)
     # button to open help page
-    addHelpButton=Button(secondFrame, text="Help", command=openAddHelp).grid(column=2, row=8)
-
+    addHelpButton=Button(secondFrame, text="Help", command=openAddHelp, bg="LightGoldenRod").grid(column=2, row=8)
 
 # makes button to open answer creator
-ACButton=Button(root, text="Add New Student", command=openAnswerCreator)
+ACButton=Button(root, text="Add New Student", command=openAnswerCreator, bg="DarkSeaGreen")
 ACButton.grid(column=1, row=0)
 
 # summary window
@@ -729,8 +730,10 @@ def openSummaryCreator():
     global ansSets, savingDirString, setName
     # set up
     top=Toplevel()
+    top.iconbitmap("abIcon.ico")
+    top.configure(bg="WhiteSmoke")
     top.title("Summary Creator")
-    doneButton=Button(top, text="Done", command=top.destroy)
+    doneButton=Button(top, text="Done", command=top.destroy, bg="coral")
     doneButton.grid(column=0, row=0)
 
     # makes variables for the set as a string var and a string
@@ -738,11 +741,11 @@ def openSummaryCreator():
     setName.set(None)
 
      # makes frame and buttons to select which set to summarize
-    setFrame=LabelFrame(top, text="Choose An Answer Set", padx=5, pady=2)
+    setFrame=LabelFrame(top, text="Choose An Answer Set", padx=5, pady=2, bg="ghost white")
     setFrame.grid(column=1, row=0, padx=10, pady=2, rowspan=18)
     rowNum=0
     for aset in ansSets:
-        Radiobutton(setFrame, text=aset, variable=setName, value=aset, command=lambda: sumClick(setName.get())).grid(column=0, row=rowNum, sticky="W")
+        Radiobutton(setFrame, text=aset, variable=setName, value=aset, command=lambda: sumClick(setName.get()), bg="ghost white").grid(column=0, row=rowNum, sticky="W")
         rowNum+=1
     # fxn to make default options
     def defaultOptions():
@@ -1151,7 +1154,7 @@ def openSummaryCreator():
         global savingDirString
         savingDirString=str(value)
         # create the button to execute the summary
-        sumButton=Button(top, text="Summarize", command=lambda: summarize(name=value))
+        sumButton=Button(top, text="Summarize", command=lambda: summarize(name=value), bg="DarkSeaGreen")
         sumButton.grid(column=2, row=0)
         # button to set options
     
@@ -1161,27 +1164,29 @@ def openSummaryCreator():
     #     error handeling
     def openOptions():
         optWindow=Toplevel()
+        optWindow.iconbitmap("abIcon.ico")
+        optWindow.configure(bg="WhiteSmoke")
         optWindow.title("Options")
-        doneButton=Button(optWindow, text="Done", command=optWindow.destroy)
+        doneButton=Button(optWindow, text="Done", command=optWindow.destroy, bg="coral")
         doneButton.grid(column=1, row=0)
         # get current options
         currentOptions={}
         with open("SummaryOptions.json", "r") as infile:
             currentOptions=json.load(infile)
         # figsize
-        sizeFrame=LabelFrame(optWindow, text="Figure Width", padx=5, pady=5)
+        sizeFrame=LabelFrame(optWindow, text="Figure Width", padx=5, pady=5, bg="ghost white")
         sizeFrame.grid(column=0, row=0, sticky=W)
         sizeEntry=Entry(sizeFrame, width=25)
         sizeEntry.insert(0, currentOptions["width"])
         sizeEntry.pack(anchor=W)
         # number of classes shown in fig 2
-        numFrame=LabelFrame(optWindow, text="Top __ Classes Shown", padx=5, pady=5)
+        numFrame=LabelFrame(optWindow, text="Top __ Classes Shown", padx=5, pady=5, bg="ghost white")
         numFrame.grid(column=0, row=1, sticky=W)
         numEntry=Entry(numFrame, width=25)
         numEntry.insert(0, currentOptions["topXclasses"])
         numEntry.pack(anchor=W)
         # cutoff number for sections 5-11
-        cutFrame=LabelFrame(optWindow, text="Cutoff for Free Responses", padx=5, pady=5)
+        cutFrame=LabelFrame(optWindow, text="Cutoff for Free Responses", padx=5, pady=5, bg="ghost white")
         cutFrame.grid(column=0, row=2, sticky=W)
         cutEntry=Entry(cutFrame, width=25)
         cutEntry.insert(0, currentOptions["cutoffNumber"])
@@ -1191,72 +1196,74 @@ def openSummaryCreator():
             with open("SummaryOptions.json", "w") as outfile:
                 optDict={"width":sizeEntry.get(), "topXclasses":int(numEntry.get()), "cutoffNumber":int(cutEntry.get())}
                 json.dump(optDict, outfile)
-        saveOpButton=Button(optWindow, text="Save", command=saveOptions)
+        saveOpButton=Button(optWindow, text="Save", command=saveOptions, bg="DarkSeaGreen")
         saveOpButton.grid(column=1, row=1)
         # help button
         def helpOptions():
             helpOpWindow=Toplevel()
+            helpOpWindow.iconbitmap("abIcon.ico")
+            helpOpWindow.configure(bg="WhiteSmoke")
             helpOpWindow.title("Help")
-            doneButton=Button(helpOpWindow, text="Done", command=helpOpWindow.destroy)
-            doneButton.grid(column=0, row=3, sticky=W)
+            doneButton=Button(helpOpWindow, text="Done", command=helpOpWindow.destroy, bg="coral")
+            doneButton.grid(column=2, row=0, sticky=W)
 
-            sizeLF=LabelFrame(helpOpWindow, text="Changing Figure Width", padx=5, pady=5)
+            sizeLF=LabelFrame(helpOpWindow, text="Changing Figure Width", padx=5, pady=5, bg="ghost white")
             sizeLF.grid(column=0, row=0, sticky=W)
-            Label(sizeLF, text="Enter the desired width of the figures").pack()
-            Label(sizeLF, text="IMPORTANT: You must include either 'cm' or 'in' (without quotation marks)").pack()
+            Label(sizeLF, text="Enter the desired width of the figures", bg="ghost white").pack(anchor=W)
+            Label(sizeLF, text="IMPORTANT: You must include either 'cm' or 'in' (without quotation marks)", bg="ghost white").pack(anchor=W)
 
-            numLF=LabelFrame(helpOpWindow, text="Changing the number of classes shown", padx=5, pady=5)
+            numLF=LabelFrame(helpOpWindow, text="Changing the number of classes shown", padx=5, pady=5, bg="ghost white")
             numLF.grid(column=0, row=1, sticky=W)
-            Label(numLF, text="This sets the number of classes shown in the plot").pack()
-            Label(numLF, text="For example, the default setting is 7 so the 7 most popular classes are shown").pack()
+            Label(numLF, text="This sets the number of classes shown in the plot", bg="ghost white").pack(anchor=W)
+            Label(numLF, text="For example, the default setting is 7 so the 7 most popular classes are shown", bg="ghost white").pack(anchor=W)
 
-            cutLF=LabelFrame(helpOpWindow, text="Free Response Cutoff Number", padx=5, pady=5)
+            cutLF=LabelFrame(helpOpWindow, text="Free Response Cutoff Number", padx=5, pady=5, bg="ghost white")
             cutLF.grid(column=0, row=2, sticky=W)
-            Label(cutLF, text="This sets the number of times an answer must be chosen for it to appear in the summary").pack()
-            Label(cutLF, text="For example, if this is 2, then only answers which have been chosen twice or more will be on the summary").pack()
-        helpOpButton=Button(optWindow, text="Help", command=helpOptions)
+            Label(cutLF, text="This sets the number of times an answer must be chosen for it to appear in the summary", bg="ghost white").pack(anchor=W)
+            Label(cutLF, text="For example, if this is 2, then only answers which have been chosen twice or more will be on the summary", bg="ghost white").pack(anchor=W)
+        helpOpButton=Button(optWindow, text="Help", command=helpOptions, bg="LightGoldenrod")
         helpOpButton.grid(column=1, row=2)
         # reset button
-        resetButton=Button(optWindow, text="Reset to Defaults", command=defaultOptions)
+        resetButton=Button(optWindow, text="Reset to Defaults", command=defaultOptions, bg="orchid1")
         resetButton.grid(column=1, row=3)
-    optButton=Button(top, text="Options", command=openOptions)
+    optButton=Button(top, text="Options", command=openOptions, bg="orchid1")
     optButton.grid(column=0, row=1)
 
 # button to open summary creator
-SCButton=Button(root, text="Create Summary", command=openSummaryCreator)
+SCButton=Button(root, text="Create Summary", command=openSummaryCreator, bg="DeepSkyBlue2")
 SCButton.grid(column=2, row=0)
 
 
 # home help window
-# TODO:
-#     change background / frame colors to make it more readable
 def openHomeHelp():
     top=Toplevel()
+    top.iconbitmap("abIcon.ico")
+    top.configure(bg="WhiteSmoke")
     top.title("Help")
-    doneButton=Button(top, text="Done", command=top.destroy)
+    doneButton=Button(top, text="Done", command=top.destroy, bg="coral")
     doneButton.grid(column=1, row=0, sticky=W)
     
-    groupFrame=LabelFrame(top, text="How to make a new GROUP for answer sheets", padx=5, pady=5)
+    groupFrame=LabelFrame(top, text="How to make a new GROUP for answer sheets", padx=5, pady=5, bg="ghost white")
     groupFrame.grid(column=0, row=0 ,sticky=W)
-    groupLabel1=Label(groupFrame, text="1) Type in the name of the group into the 'Set Name' field").pack(anchor=W)
-    groupLabel2=Label(groupFrame, text="2) Press the 'Create' button").pack(anchor=W)
+    groupLabel1=Label(groupFrame, text="1) Type in the name of the group into the 'Set Name' field", bg="ghost white").pack(anchor=W)
+    groupLabel2=Label(groupFrame, text="2) Press the 'Create' button", bg="ghost white").pack(anchor=W)
     
-    ansFrame=LabelFrame(top, text="How to enter a new ANSWER SHEET", padx=5, pady=5)
+    ansFrame=LabelFrame(top, text="How to enter a new ANSWER SHEET", padx=5, pady=5, bg="ghost white")
     ansFrame.grid(column=0, row=1, sticky=W)
-    ansLabel1=Label(ansFrame, text="1) Press the 'Add New Student' button").pack(anchor=W)
-    ansLabel2=Label(ansFrame, text="2) Press the button corresponding to the group that the answer sheet belongs to").pack(anchor=W)
-    ansLabel2a=Label(ansFrame, text="    a) If the correct group does not appear, make a new group by following the steps above").pack(anchor=W)
-    ansLabel3=Label(ansFrame, text="3) Fill in the answers (see the help page in the Answer Entry window for details").pack(anchor=W)
+    ansLabel1=Label(ansFrame, text="1) Press the 'Add New Student' button", bg="ghost white").pack(anchor=W)
+    ansLabel2=Label(ansFrame, text="2) Press the button corresponding to the group that the answer sheet belongs to", bg="ghost white").pack(anchor=W)
+    ansLabel2a=Label(ansFrame, text="    a) If the correct group does not appear, make a new group by following the steps above", bg="ghost white").pack(anchor=W)
+    ansLabel3=Label(ansFrame, text="3) Fill in the answers (see the help page in the Answer Entry window for details)", bg="ghost white").pack(anchor=W)
 
-    sumFrame=LabelFrame(top, text="How to make a SUMMARY", padx=5, pady=5)
+    sumFrame=LabelFrame(top, text="How to make a SUMMARY", padx=5, pady=5, bg="ghost white")
     sumFrame.grid(column=0, row=2, sticky=W)
-    sumLabel1=Label(sumFrame, text="1) Press the 'Create Summary' button").pack(anchor=W)
-    sumLabel2=Label(sumFrame, text="2) Press the button corresponding to the group that you want to summarize").pack(anchor=W)
-    sumLabel3=Label(sumFrame, text="3) Press the 'Summarize' button").pack(anchor=W)
-    sumLabel3a=Label(sumFrame, text="    a) This may take a couple of seconds and may resize the windows, don't worry :)")
+    sumLabel1=Label(sumFrame, text="1) Press the 'Create Summary' button", bg="ghost white").pack(anchor=W)
+    sumLabel2=Label(sumFrame, text="2) Press the button corresponding to the group that you want to summarize", bg="ghost white").pack(anchor=W)
+    sumLabel3=Label(sumFrame, text="3) Press the 'Summarize' button", bg="ghost white").pack(anchor=W)
+    sumLabel3a=Label(sumFrame, text="    a) This may take a couple of seconds and may resize the windows, don't worry :)", bg="ghost white").pack(anchor=W)
 
 # button to open home help
-HHButton=Button(root, text="Help", command=openHomeHelp)
+HHButton=Button(root, text="Help", command=openHomeHelp, bg="LightGoldenRod")
 HHButton.grid(column=2, row=1)
 
 
