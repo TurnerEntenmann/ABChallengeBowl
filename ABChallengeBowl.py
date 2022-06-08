@@ -1,12 +1,13 @@
 # TODO:
 #   make scrollbar always work
 
-import json, os, matplotlib
+import json, os, matplotlib, zipfile
 import numpy as np
 import pandas as pd
 from pylatex import Document, Section, Subsection, Table, Math, TikZ, Axis, \
     Plot, Figure, Package, Itemize
 from pylatex.utils import NoEscape
+from zipfile import ZipFile
 from tkinter import *
 from tkinter import messagebox
 from tkinter.filedialog import askopenfilename, asksaveasfilename
@@ -24,7 +25,7 @@ dirList=os.listdir()
 if "Answer_Sets" not in dirList:
     os.mkdir("Answer_Sets")
 
-# starting window basics
+# home window basics
 root=Tk()
 root.configure(bg="WhiteSmoke")
 root.iconbitmap("abIcon.ico")
@@ -109,7 +110,7 @@ def refresh():
     os.chdir("Answer_Sets")
     ansSets=os.listdir()
     for set in ansSets:
-        Label(ansFrame, text=set).pack()
+        Label(ansFrame, text=set, bg="ghost white").pack(anchor=W)
     os.chdir("..")
 
 # make refresh button
@@ -170,7 +171,7 @@ def openAnswerCreator():
         canvas.config(scrollregion=mainFrame.bbox("all"))
     makeScrollBar()
     # global vars
-    global a1, a2, a3, a3LB, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, ansSets, savingDirString, setName
+    global a1, a2, a3, a3LB, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a18LB, ansSets, savingDirString, setName
     # makes frame to select which set to save into
     setFrame=LabelFrame(secondFrame, text="Answer Sets", height=500, width=100, padx=5, pady=2, bg="WhiteSmoke")
     setFrame.grid(column=1, row=0, padx=10, pady=2, rowspan=18)
@@ -297,13 +298,12 @@ def openAnswerCreator():
         def FRQbutton(question, frame, var):
             colNum=0
             rowNum=1
-            if question!="Q3":
-                for ans in ansListDict[question]:
-                    Radiobutton(frame, text=ans, variable=var, value=ans, bg="ghost white").grid(column=colNum, row=rowNum, sticky="w")
-                    colNum+=1
-                    if colNum==2:
-                        colNum=0
-                        rowNum+=1
+            for ans in ansListDict[question]:
+                Radiobutton(frame, text=ans, variable=var, value=ans, bg="ghost white").grid(column=colNum, row=rowNum, sticky="w")
+                colNum+=1
+                if colNum==2:
+                    colNum=0
+                    rowNum+=1
         # returns "No Answer" if value==""
         def blankFxn(value):
             if value=="":
@@ -366,12 +366,14 @@ def openAnswerCreator():
         # updates a list of previous answers with newAns
         def updateAnsList(newAns, question, frame, var):
             global mainFrame, canvas
-            # updates list
-            ansListDict[question].append(newAns)
-            # makes buttons
-            FRQbutton(question, frame, var)
-            # updates scrollbar
-            resetScrollBar()
+            if len(newAns)>0:
+                if newAns not in ansListDict[question]:
+                    # updates list
+                    ansListDict[question].append(newAns)
+                    # makes buttons
+                    FRQbutton(question, frame, var)
+                    # updates scrollbar
+                    resetScrollBar()
         # clears entry boxes
         def clearE(question, frame, hsize=50):
             entryDict[question]=Entry(frame, width=hsize)
@@ -400,22 +402,23 @@ def openAnswerCreator():
         q3Frame=LabelFrame(secondFrame, text="Q3: What classes are/have you take(n)", bg="ghost white")
         q3Frame.grid(column=0, row=2, sticky=W)
         List=ansListDict["Q3"]
-        a3LB=Listbox(q3Frame, selectmode="multiple", height=len(List), exportselection=False)
+        a3LB=Listbox(q3Frame, selectmode="multiple", width=40, height=len(List), exportselection=False)
         a3LB.grid(column=0, row=1)
         for item in List:
             a3LB.insert(END, item)
         # updates q3LB
         def q3Updater(newAns):
             global a3LB
-            if newAns not in ansListDict["Q3"]:
-                ansListDict["Q3"]=[newAns]+ansListDict["Q3"]
-                a3LB=Listbox(q3Frame, selectmode="multiple", height=len(ansListDict["Q3"]), exportselection=False)
-                for ans in ansListDict["Q3"]:
-                    a3LB.insert(END, ans)
-                a3LB.grid(column=0, row=1)
-            else:
-                messagebox.showerror("Error", f"{newAns} is already an option")
-            q3entry.delete(0, END)
+            if len(newAns)>0:
+                if newAns not in ansListDict["Q3"]:
+                    ansListDict["Q3"]=[newAns]+ansListDict["Q3"]
+                    a3LB=Listbox(q3Frame, selectmode="multiple", width=40, height=len(ansListDict["Q3"]), exportselection=False)
+                    for ans in ansListDict["Q3"]:
+                        a3LB.insert(END, ans)
+                    a3LB.grid(column=0, row=1)
+                else:
+                    messagebox.showerror("Error", f"{newAns} is already an option")
+                q3entry.delete(0, END)
         # entry box for q3
         q3entry=Entry(q3Frame, width=50)
         q3entry.grid(column=0,row=0)
@@ -467,22 +470,23 @@ def openAnswerCreator():
         a8=StringVar()
         a8.set(None)
         List=ansListDict["Q8"]
-        a8LB=Listbox(q8Frame, selectmode="multiple", height=len(List), exportselection=False)
-        a8LB.grid(column=0, row=1, sticky=W)
+        a8LB=Listbox(q8Frame, selectmode="multiple", width=40, height=len(List), exportselection=False)
+        a8LB.grid(column=0, row=1)
         for item in List:
             a8LB.insert(END, item)
         # updates a8LB
         def q8Updater(newAns):
             global a8LB
-            if newAns not in ansListDict["Q8"]:
-                ansListDict["Q8"]=[newAns]+ansListDict["Q8"]
-                a8LB=Listbox(q8Frame, selectmode="multiple", height=len(ansListDict["Q8"]), exportselection=False)
-                for ans in ansListDict["Q8"]:
-                    a8LB.insert(END, ans)
-                a8LB.grid(column=0, row=1)
-            else:
-                messagebox.showerror("Error", f"{newAns} is already an option")
-            q8entry.delete(0, END)
+            if len(newAns)>0:
+                if newAns not in ansListDict["Q8"]:
+                    ansListDict["Q8"]=[newAns]+ansListDict["Q8"]
+                    a8LB=Listbox(q8Frame, selectmode="multiple", width=40, height=len(ansListDict["Q8"]), exportselection=False)
+                    for ans in ansListDict["Q8"]:
+                        a8LB.insert(END, ans)
+                    a8LB.grid(column=0, row=1)
+                else:
+                    messagebox.showerror("Error", f"{newAns} is already an option")
+                q8entry.delete(0, END)
         # entry box for q8
         q8entry=Entry(q8Frame, width=50)
         q8entry.grid(column=0,row=0)
@@ -494,22 +498,23 @@ def openAnswerCreator():
         a9=StringVar()
         a9.set(None)
         List=ansListDict["Q9"]
-        a9LB=Listbox(q9Frame, selectmode="multiple", height=len(List), exportselection=False)
-        a9LB.grid(column=0, row=1, sticky=W)
+        a9LB=Listbox(q9Frame, selectmode="multiple", width=40, height=len(List), exportselection=False)
+        a9LB.grid(column=0, row=1)
         for item in List:
             a9LB.insert(END, item)
         # updates a9LB
         def q9Updater(newAns):
             global a9LB
-            if newAns not in ansListDict["Q9"]:
-                ansListDict["Q9"]=[newAns]+ansListDict["Q9"]
-                a9LB=Listbox(q9Frame, selectmode="multiple", height=len(ansListDict["Q9"]), exportselection=False)
-                for ans in ansListDict["Q9"]:
-                    a9LB.insert(END, ans)
-                a9LB.grid(column=0, row=1)
-            else:
-                messagebox.showerror("Error", f"{newAns} is already an option")
-            q9entry.delete(0, END)
+            if len(newAns)>0:
+                if newAns not in ansListDict["Q9"]:
+                    ansListDict["Q9"]=[newAns]+ansListDict["Q9"]
+                    a9LB=Listbox(q9Frame, selectmode="multiple", width=40, height=len(ansListDict["Q9"]), exportselection=False)
+                    for ans in ansListDict["Q9"]:
+                        a9LB.insert(END, ans)
+                    a9LB.grid(column=0, row=1)
+                else:
+                    messagebox.showerror("Error", f"{newAns} is already an option")
+                q9entry.delete(0, END)
         # entry box for q9
         q9entry=Entry(q9Frame, width=50)
         q9entry.grid(column=0,row=0)
@@ -521,22 +526,23 @@ def openAnswerCreator():
         a10=StringVar()
         a10.set(None)
         List=ansListDict["Q10"]
-        a10LB=Listbox(q10Frame, selectmode="multiple", height=len(List), exportselection=False)
+        a10LB=Listbox(q10Frame, selectmode="multiple", width=40, height=len(List), exportselection=False)
         a10LB.grid(column=0, row=1)
         for item in List:
             a10LB.insert(END, item)
         # updates a10LB
         def q10Updater(newAns):
             global a10LB
-            if newAns not in ansListDict["Q10"]:
-                ansListDict["Q10"]=[newAns]+ansListDict["Q10"]
-                a10LB=Listbox(q10Frame, selectmode="multiple", height=len(ansListDict["Q10"]), exportselection=False)
-                for ans in ansListDict["Q10"]:
-                    a10LB.insert(END, ans)
-                a10LB.grid(column=0, row=1)
-            else:
-                messagebox.showerror("Error", f"{newAns} is already an option")
-            q10entry.delete(0, END)
+            if len(newAns)>0:
+                if newAns not in ansListDict["Q10"]:
+                    ansListDict["Q10"]=[newAns]+ansListDict["Q10"]
+                    a10LB=Listbox(q10Frame, selectmode="multiple", width=40, height=len(ansListDict["Q10"]), exportselection=False)
+                    for ans in ansListDict["Q10"]:
+                        a10LB.insert(END, ans)
+                    a10LB.grid(column=0, row=1)
+                else:
+                    messagebox.showerror("Error", f"{newAns} is already an option")
+                q10entry.delete(0, END)
         # entry box for q10
         q10entry=Entry(q10Frame, width=50)
         q10entry.grid(column=0,row=0)
@@ -548,22 +554,23 @@ def openAnswerCreator():
         a11=StringVar()
         a11.set(None)
         List=ansListDict["Q11"]
-        a11LB=Listbox(q11Frame, selectmode="multiple", height=len(List), exportselection=False)
+        a11LB=Listbox(q11Frame, selectmode="multiple", width=40, height=len(List), exportselection=False)
         a11LB.grid(column=0, row=1)
         for item in List:
             a11LB.insert(END, item)
         # updates a11LB
         def q11Updater(newAns):
             global a11LB
-            if newAns not in ansListDict["Q11"]:
-                ansListDict["Q11"]=[newAns]+ansListDict["Q11"]
-                a11LB=Listbox(q11Frame, selectmode="multiple", height=len(ansListDict["Q11"]), exportselection=False)
-                for ans in ansListDict["Q11"]:
-                    a11LB.insert(END, ans)
-                a11LB.grid(column=0, row=1)
-            else:
-                messagebox.showerror("Error", f"{newAns} is already an option")
-            q11entry.delete(0, END)
+            if len(newAns)>0:
+                if newAns not in ansListDict["Q11"]:
+                    ansListDict["Q11"]=[newAns]+ansListDict["Q11"]
+                    a11LB=Listbox(q11Frame, selectmode="multiple", width=40, height=len(ansListDict["Q11"]), exportselection=False)
+                    for ans in ansListDict["Q11"]:
+                        a11LB.insert(END, ans)
+                    a11LB.grid(column=0, row=1)
+                else:
+                    messagebox.showerror("Error", f"{newAns} is already an option")
+                q11entry.delete(0, END)
         # entry box for q11
         q11entry=Entry(q11Frame, width=50)
         q11entry.grid(column=0,row=0)
@@ -589,22 +596,23 @@ def openAnswerCreator():
         a14=StringVar()
         a14.set(None)
         List=ansListDict["Q14"]
-        a14LB=Listbox(q14Frame, selectmode="multiple", height=len(List), exportselection=False)
+        a14LB=Listbox(q14Frame, selectmode="multiple", width=40, height=len(List), exportselection=False)
         a14LB.grid(column=0, row=1)
         for item in List:
             a14LB.insert(END, item)
         # updates a14LB
         def q14Updater(newAns):
             global a14LB
-            if newAns not in ansListDict["Q14"]:
-                ansListDict["Q14"]=[newAns]+ansListDict["Q14"]
-                a14LB=Listbox(q14Frame, selectmode="multiple", height=len(ansListDict["Q14"]), exportselection=False)
-                for ans in ansListDict["Q14"]:
-                    a14LB.insert(END, ans)
-                a14LB.grid(column=0, row=1)
-            else:
-                messagebox.showerror("Error", f"{newAns} is already an option")
-            q14entry.delete(0, END)
+            if len(newAns)>0:
+                if newAns not in ansListDict["Q14"]:
+                    ansListDict["Q14"]=[newAns]+ansListDict["Q14"]
+                    a14LB=Listbox(q14Frame, selectmode="multiple", width=40, height=len(ansListDict["Q14"]), exportselection=False)
+                    for ans in ansListDict["Q14"]:
+                        a14LB.insert(END, ans)
+                    a14LB.grid(column=0, row=1)
+                else:
+                    messagebox.showerror("Error", f"{newAns} is already an option")
+                q14entry.delete(0, END)
         # entry box for q14
         q14entry=Entry(q14Frame, width=50)
         q14entry.grid(column=0,row=0)
@@ -625,22 +633,23 @@ def openAnswerCreator():
         a16=StringVar()
         a16.set(None)
         List=ansListDict["Q16"]
-        a16LB=Listbox(q16Frame, selectmode="multiple", height=len(List), exportselection=False)
+        a16LB=Listbox(q16Frame, selectmode="multiple", width=40, height=len(List), exportselection=False)
         a16LB.grid(column=0, row=1)
         for item in List:
             a16LB.insert(END, item)
         # updates a16LB
         def q16Updater(newAns):
             global a16LB
-            if newAns not in ansListDict["Q16"]:
-                ansListDict["Q16"]=[newAns]+ansListDict["Q16"]
-                a16LB=Listbox(q16Frame, selectmode="multiple", height=len(ansListDict["Q16"]), exportselection=False)
-                for ans in ansListDict["Q16"]:
-                    a16LB.insert(END, ans)
-                a16LB.grid(column=0, row=1)
-            else:
-                messagebox.showerror("Error", f"{newAns} is already an option")
-            q16entry.delete(0, END)
+            if len(newAns)>0:
+                if newAns not in ansListDict["Q16"]:
+                    ansListDict["Q16"]=[newAns]+ansListDict["Q16"]
+                    a16LB=Listbox(q16Frame, selectmode="multiple", width=40, height=len(ansListDict["Q16"]), exportselection=False)
+                    for ans in ansListDict["Q16"]:
+                        a16LB.insert(END, ans)
+                    a16LB.grid(column=0, row=1)
+                else:
+                    messagebox.showerror("Error", f"{newAns} is already an option")
+                q16entry.delete(0, END)
         # entry box for q16
         q16entry=Entry(q16Frame, width=50)
         q16entry.grid(column=0,row=0)
@@ -661,22 +670,23 @@ def openAnswerCreator():
         a18=StringVar()
         a18.set(None)
         List=ansListDict["Q18"]
-        a18LB=Listbox(q18Frame, selectmode="multiple", height=len(List), exportselection=False)
+        a18LB=Listbox(q18Frame, selectmode="multiple", width=40, height=len(List), exportselection=False)
         a18LB.grid(column=0, row=1)
         for item in List:
             a18LB.insert(END, item)
         # updates a18LB
         def q18Updater(newAns):
             global a18LB
-            if newAns not in ansListDict["Q18"]:
-                ansListDict["Q18"]=[newAns]+ansListDict["Q18"]
-                a18LB=Listbox(q18Frame, selectmode="multiple", height=len(ansListDict["Q18"]), exportselection=False)
-                for ans in ansListDict["Q18"]:
-                    a18LB.insert(END, ans)
-                a18LB.grid(column=0, row=1)
-            else:
-                messagebox.showerror("Error", f"{newAns} is already an option")
-            q18entry.delete(0, END)
+            if len(newAns)>0:
+                if newAns not in ansListDict["Q18"]:
+                    ansListDict["Q18"]=[newAns]+ansListDict["Q18"]
+                    a18LB=Listbox(q18Frame, selectmode="multiple", width=40, height=len(ansListDict["Q18"]), exportselection=False)
+                    for ans in ansListDict["Q18"]:
+                        a18LB.insert(END, ans)
+                    a18LB.grid(column=0, row=1)
+                else:
+                    messagebox.showerror("Error", f"{newAns} is already an option")
+                q18entry.delete(0, END)
         # entry box for q18
         q18entry=Entry(q18Frame, width=50)
         q18entry.grid(column=0,row=0)
@@ -724,7 +734,6 @@ ACButton.grid(column=1, row=0)
 
 # summary window
 # TODO:
-#    make options page
 #    get all answers into one zip file when summarizing
 def openSummaryCreator():
     global ansSets, savingDirString, setName
@@ -742,11 +751,18 @@ def openSummaryCreator():
 
      # makes frame and buttons to select which set to summarize
     setFrame=LabelFrame(top, text="Choose An Answer Set", padx=5, pady=2, bg="ghost white")
-    setFrame.grid(column=1, row=0, padx=10, pady=2, rowspan=18)
+    setFrame.grid(column=1, row=0, padx=10, pady=2, rowspan=2)
     rowNum=0
     for aset in ansSets:
         Radiobutton(setFrame, text=aset, variable=setName, value=aset, command=lambda: sumClick(setName.get()), bg="ghost white").grid(column=0, row=rowNum, sticky="W")
         rowNum+=1
+    # make or dont make zipfile
+    zipFrame=LabelFrame(top, text="Make a ZipFile of Answer Files", padx=5, pady=2, bg="ghost white")
+    zipFrame.grid(column=2, row=0, padx=10, pady=2)
+    makeZip=BooleanVar()
+    makeZip.set(False)
+    Radiobutton(zipFrame, text="Yes", variable=makeZip, value=True, bg="ghost white").grid(column=0, row=0, sticky="W")
+    Radiobutton(zipFrame, text="No", variable=makeZip, value=False, bg="ghost white").grid(column=0, row=1, sticky="W")
     # fxn to make default options
     def defaultOptions():
         with open("SummaryOptions.json", "w") as outfile:
@@ -1144,6 +1160,13 @@ def openSummaryCreator():
             os.chdir("..")
         pdfMaker(name)
 
+        # get jsons into a zipfile
+        if makeZip.get():
+            with ZipFile("CompressedAnswers.zip", "w") as studentZip:
+                for thing in os.listdir():
+                    if thing[-4:]=="json":
+                        studentZip.write(thing)
+
         # return to highest dir
         os.chdir("..")
         os.chdir("..")
@@ -1155,13 +1178,10 @@ def openSummaryCreator():
         savingDirString=str(value)
         # create the button to execute the summary
         sumButton=Button(top, text="Summarize", command=lambda: summarize(name=value), bg="DarkSeaGreen")
-        sumButton.grid(column=2, row=0)
+        sumButton.grid(column=3, row=0)
         # button to set options
     
-        
     # opens page to change options
-    # TODO:
-    #     error handeling
     def openOptions():
         optWindow=Toplevel()
         optWindow.iconbitmap("abIcon.ico")
@@ -1193,9 +1213,33 @@ def openSummaryCreator():
         cutEntry.pack(anchor=W)
         # save button
         def saveOptions():
-            with open("SummaryOptions.json", "w") as outfile:
-                optDict={"width":sizeEntry.get(), "topXclasses":int(numEntry.get()), "cutoffNumber":int(cutEntry.get())}
-                json.dump(optDict, outfile)
+            # ensure good entries
+            if "cm" in sizeEntry.get() or "in" in sizeEntry.get():
+                # good entry 1
+                try:
+                    int(numEntry.get())
+                    if int(numEntry.get())>0:
+                        # good entry 2
+                        try:
+                            int(cutEntry.get())
+                            if int(cutEntry.get())>0:
+                                # good entry 3
+                                # save the settings
+                                with open("SummaryOptions.json", "w") as outfile:
+                                    optDict={"width":sizeEntry.get(), "topXclasses":int(numEntry.get()), "cutoffNumber":int(cutEntry.get())}
+                                    json.dump(optDict, outfile)
+                            else:
+                                # cutoff number is not > 0
+                                messagebox.showerror("Error", "Cutoff Number must be >=1")
+                        except:
+                            # cutoff number is not an int
+                            messagebox.showerror("Error", "Cutoff Number must be an integer (1,2,3,...) without spaces")
+                    else:
+                        messagebox.showerror("Error", "Top __ Classes must be >=1")
+                except:
+                    messagebox.showerror("Error", "Top __ Classes must be an integer (1,2,3,...) without spaces")
+            else:
+                messagebox.showerror("Error", "Figure width must have either ' in' or ' cm' i.e.\n7 cm")
         saveOpButton=Button(optWindow, text="Save", command=saveOptions, bg="DarkSeaGreen")
         saveOpButton.grid(column=1, row=1)
         # help button
@@ -1229,10 +1273,11 @@ def openSummaryCreator():
     optButton=Button(top, text="Options", command=openOptions, bg="orchid1")
     optButton.grid(column=0, row=1)
 
+
+
 # button to open summary creator
 SCButton=Button(root, text="Create Summary", command=openSummaryCreator, bg="DeepSkyBlue2")
 SCButton.grid(column=2, row=0)
-
 
 # home help window
 def openHomeHelp():
