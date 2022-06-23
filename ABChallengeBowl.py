@@ -113,10 +113,6 @@ def refresh():
         Label(ansFrame, text=set, bg="ghost white").pack(anchor=W)
     os.chdir("..")
 
-# make refresh button
-refButton=Button(root, text="Refresh", command=refresh, bg="ghost white")
-refButton.grid(column=0, row=1)
-
 # fxn to create new ans sets
 # must start in highest dir, ends in highest dir
 def newSet(name):
@@ -292,7 +288,7 @@ def openAnswerCreator():
     #     delete old widgets when updating LBs, entering in new group, entering new student
     #     declutter / get rid of old code / vars
     def eSetUp():
-        global a1, a2, a3, a3LB, a4, a5, a6, a7, a8, a8LB, a9, a9LB, a10, a10LB, a11, a11LB, a12, a13, a14, a14LB, a15, a16, a16LB, a17, q17entry, a18, savingDirString, mainFrame, canvas, LBDict
+        global a1, a2, a3, a3LB, a4, a5, a6, a7, a8, a8LB, a9, a9LB, a10, a10LB, a11, a11LB, a12, a13, a14, a14LB, a15, a16, a16LB, a17, q17entry, a18, a18LB, savingDirString, mainFrame, canvas, LBDict
         # allows for fast selections
         # makes buttons for free response questions
         def FRQbutton(question, frame, var):
