@@ -584,7 +584,7 @@ def openAnswerCreator():
         q13Frame=LabelFrame(secondFrame, text="Q13: Do you plan to go on to college or higher education?", bg="ghost white")
         q13Frame.grid(column=0, row=12, sticky=W)
         yButton13=Radiobutton(q13Frame, text="Yes", variable=a13, value="Yes", bg="ghost white").grid(column=0, row=0)
-        nButton13=Radiobutton(q13Frame, text="Yes", variable=a13, value="No", bg="ghost white").grid(column=1, row=0)
+        nButton13=Radiobutton(q13Frame, text="No", variable=a13, value="No", bg="ghost white").grid(column=1, row=0)
         # frame for q14
         q14Frame=LabelFrame(secondFrame, text="Q14: How would you improve FICB?", bg="ghost white")
         q14Frame.grid(column=0, row=13, sticky=W)
