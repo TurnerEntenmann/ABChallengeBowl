@@ -1,12 +1,13 @@
 # TODO:
 #   make scrollbar always work
 
-import json, os, matplotlib, zipfile
+import json, os, matplotlib, zipfile, shutil
 import numpy as np
 import pandas as pd
 from pylatex import Document, Section, Subsection, Table, Math, TikZ, Axis, \
-    Plot, Figure, Package, Itemize
-from pylatex.utils import NoEscape
+    Plot, Figure, Package, Itemize, Command, Hyperref, Package
+from pylatex.utils import NoEscape, escape_latex
+from matplotlib.ticker import MaxNLocator
 from zipfile import ZipFile
 from tkinter import *
 from tkinter import messagebox
@@ -752,6 +753,19 @@ def openSummaryCreator():
     for aset in ansSets:
         Radiobutton(setFrame, text=aset, variable=setName, value=aset, command=lambda: sumClick(setName.get()), bg="ghost white").grid(column=0, row=rowNum, sticky="W")
         rowNum+=1
+    # makes tournament title entry box
+    TNFrame=LabelFrame(top, text="Tournament Name", padx=25, pady=5, bg="ghost white")
+    TNFrame.grid(column=1, row=1)
+    TNEntry=Entry(TNFrame, width=20)
+    TNEntry.grid(column=0,row=0)
+    TNEntry.insert(0,"Tournament Name")
+
+    # makes date entry box
+    dateFrame=LabelFrame(top, text="Date", padx=25, pady=5, bg="ghost white")
+    dateFrame.grid(column=1, row=2)
+    dateEntry=Entry(dateFrame, width=20)
+    dateEntry.grid(column=0,row=0)
+
     # make or dont make zipfile
     zipFrame=LabelFrame(top, text="Make a ZipFile of Answer Files", padx=5, pady=2, bg="ghost white")
     zipFrame.grid(column=2, row=0, padx=10, pady=2)
@@ -773,9 +787,11 @@ def openSummaryCreator():
     #     ?? make progress bar ??
     #     doesn't work twice in the same session? after changing options?
     def summarize(name):
+        logoPath=os.path.abspath("ABLogo.pdf")
         currentOptions={}
         with open("SummaryOptions.json", "r") as infile:
             currentOptions=json.load(infile)
+        plt.style.use('tableau-colorblind10')
         dirName=name
         dirPath=os.path.join("Answer_Sets", dirName)
         # make a dir for the summary and its files
@@ -784,6 +800,8 @@ def openSummaryCreator():
             os.mkdir("Summary")
         os.chdir("..")
         os.chdir("..")
+        # copy logo into summary folder
+        shutil.copy("ABLogo.pdf", os.path.join(dirPath, "Summary"))
         # fxn to make nice axies and a list of colorblind-friendly colors
         def get_ax(figsize=(8, 6)):
             fig, ax = plt.subplots(figsize=figsize)
@@ -791,23 +809,26 @@ def openSummaryCreator():
             ax.spines['left'].set_visible(False)
             ax.spines['top'].set_visible(False)
             return ax
-        CB_color_cycle = ['#f0f9e8', '#bae4bc', '#7bccc4', '#43a2ca', '#0868ac', '#984ea3']
-        # fxn to make DF from jsons
+        # fxn to make DF from jsons and gets # of jsons
         def makeDF(dirName):
+            RN=0
             dirPath=os.path.join("Answer_Sets", name)
             os.chdir(dirPath)
             # DF is horizontal
             DF=DataFrame({"Q1":[], "Q2":[], "Q3":[], "Q4":[], "Q5":[], "Q6":[], "Q7":[], "Q8":[], "Q9":[], "Q10":[], "Q11":[], "Q12":[], "Q13":[], "Q14":[], "Q15":[], "Q16":[], "Q17":[], "Q18":[]})
             for file in os.listdir():
                 if file[-4:]=="json":
+                    RN+=1
                     with open(file) as json_file:
                         data = json.load(json_file)
                         # dataDF is horizontal
                         dataDF=DataFrame.from_dict(data, orient='index').transpose()
                         DF.loc[len(DF.index)] = list(dataDF.iloc[0])
-            return DF    
+            return [DF, RN]
         # make DF from jsons and list of schools
-        bigDF=makeDF(name)
+        DFRN=makeDF(name)
+        bigDF=DFRN[0]
+        RN=DFRN[1]
         schools=list(set(bigDF["Q1"])) 
         # make plot of grade distribution in schools in the set
         def gradeSummary(plotFile=os.path.join("Summary","AgeDistributionPlot.pdf"), dataFrame=schools, figSize=(10,8), fsize=20):
@@ -847,19 +868,16 @@ def openSummaryCreator():
                 # makes df with school name as idx, # of freshman, ... as bar lengths
                 gradesDF=DataFrame({"School":schools, "Freshman":fList, "Sophomore":soList, "Junior":jList, "Senior":srList})
                 gradesDF=gradesDF.set_index("School")
-                # gets correct number of colorblind-friendly colors
-                colors=[]
-                i=0
-                while i<4:
-                    colors.append(CB_color_cycle[i])
-                    i+=1
-                gradesDF.plot.barh(ax=ax, color=colors)
+                maxX=max(max(gradesDF["Freshman"]), max(gradesDF["Sophomore"]), max(gradesDF["Junior"]), max(gradesDF["Senior"]))
+                gradesDF.plot.barh(ax=ax)
                 # graph settings
-                ax.legend(fontsize=fsize-2, loc="upper center", ncol=4)
-                plt.xticks(size=fsize)
+                handles, labels = ax.get_legend_handles_labels()
+                ax.legend(handles[::-1], labels[::-1], fontsize=fsize-2, loc="upper left", bbox_to_anchor=(-0.4, 1), ncol=4)
+                plt.xticks(np.arange(0, maxX+1, 1), size=fsize)
                 plt.yticks(size=fsize)
                 ax.set_xlabel("")
                 ax.set_ylabel("")
+                ax.xaxis.set_major_locator(MaxNLocator(integer=True))
                 plt.tight_layout()
                 plt.savefig(plotFile)
             gradePlotter()
@@ -893,18 +911,22 @@ def openSummaryCreator():
                     # makes and sorts df with class name as idx, # of times taken as bar lengths
                     classesDF=DataFrame.from_dict(classDict, columns=["Times Taken"], orient="index").sort_values(by='Times Taken', ascending=False)
                     classesDF.head(classNumber).plot.barh(ax=ax, color="0")
+                    maxX=0
+                    for (columnName, columnData) in classesDF.iteritems():
+                        if max(classesDF[columnName])>=maxX:
+                            maxX=max(classesDF[columnName])
                     # graph settings
                     ax.legend().remove()
-                    plt.xticks(size=fsize)
+                    plt.xticks(np.arange(0, maxX+1, 1), size=fsize)
                     plt.yticks(size=fsize)
                     ax.set_xlabel("")
                     ax.set_ylabel("")
+                    ax.xaxis.set_major_locator(MaxNLocator(integer=True))
                     plt.tight_layout()
                     plt.savefig(plotFile)
             plotter()
         classesSummary()
         # make plot of numerical questions
-        # TODO: fix colors
         def numSummary(plotFile=os.path.join("Summary", "NumbersPlot.pdf"), fsize=20):
             # preparation question
             prep=bigDF["Q4"]
@@ -965,23 +987,23 @@ def openSummaryCreator():
                     lst4[3]+=1
                 if score=="5":
                     lst5[3]+=1        
-            qList=["I Was Well Prepared\nto Compete", "FICB Content Mirrors\nSchool Content", "The Competition Rules Were\nEasy to Understand", "I Studieded Content at\nwww.ficbonline.org"]
+            qList=["I Was Well Prepared\nto Compete", "FICB Content Mirrors\nSchool Content", "The Competition Rules Were\nEasy to Understand", "I Studied Content at\nwww.ficbonline.org"]
             numsDF=DataFrame({"Question":qList, "1-Disagree":lst1, "2":lst2, "3":lst3, "4":lst4, "5-Strongly Agree":lst5})
             numsDF=numsDF.set_index("Question")
-            # good colors
-            colors=[]
-            i=0
-            while i<5:
-                colors.append(CB_color_cycle[i])
-                i+=1
+            maxX=0
+            for (columnName, columnData) in numsDF.iteritems():
+                if max(numsDF[columnName])>=maxX:
+                    maxX=max(numsDF[columnName])
             ax=get_ax((12,9))
-            numsDF.plot.barh(ax=ax, color=colors)
+            numsDF.plot.barh(ax=ax)
             # graph settings
-            ax.legend(fontsize=fsize-2, loc="upper left", bbox_to_anchor=(-0.3, 1), ncol=5)
-            plt.xticks(size=fsize)
+            handles, labels = ax.get_legend_handles_labels()
+            ax.legend(handles[::-1], labels[::-1], fontsize=fsize-2, loc="upper left", bbox_to_anchor=(-0.3, 1), ncol=5)
+            plt.xticks(np.arange(0, maxX+1, 1), size=fsize)
             plt.yticks(size=fsize)
             ax.set_xlabel("")
             ax.set_ylabel("")
+            ax.xaxis.set_major_locator(MaxNLocator(integer=True))
             plt.tight_layout()
             plt.savefig(plotFile)
         numSummary()
@@ -1002,13 +1024,13 @@ def openSummaryCreator():
                     answers=item.split(", ")
                     for ans in answers:
                         if ans=="":
-                            name="None"
+                            name="No Answer"
                         else:
                             name=ans
                         addToDict(name)
                 else:
                     if item=="":
-                        name="None"
+                        name="No Answer"
                     else:
                         name=item
                     addToDict(name)
@@ -1045,14 +1067,19 @@ def openSummaryCreator():
             qList=["Did you increase your knowledge\nof personal finance?", "Do you plan to attend\ncollege or other higher education?", "Do You have an\naccount at a bank or credit union?"]
             ynDF=DataFrame({"Question":qList, "Yes":lstY, "No":lstN})
             ynDF=ynDF.set_index("Question")
+            maxX=0
+            for (columnName, columnData) in ynDF.iteritems():
+                if max(ynDF[columnName])>=maxX:
+                    maxX=max(ynDF[columnName])
             ax=get_ax((12,9))
-            ynDF.plot.barh(ax=ax, color=['#43a2ca', '#7bccc4'])
+            ynDF.plot.barh(ax=ax)
             # graph settings
             ax.legend(fontsize=fsize-2, loc="upper left", ncol=2)
-            plt.xticks(size=fsize)
+            plt.xticks(np.arange(0, maxX+1, 1), size=fsize)
             plt.yticks(size=fsize)
             ax.set_xlabel("")
             ax.set_ylabel("")
+            ax.xaxis.set_major_locator(MaxNLocator(integer=True))
             plt.tight_layout()
             plt.savefig(plotFile)
         ynSummary()
@@ -1062,25 +1089,49 @@ def openSummaryCreator():
             with open(textFile, "w") as file:
                 for email in emails:
                     if email!="None":
-                        file.write(email+"\n")
+                        if len(email)>1:
+                            file.write(email+"\n")
         getEmails()
         # makes the latex pdf
         # needs MiKTeX
         #   needs to be updated after installatiion
         #   needs to add float package
         # TODO:
-        #     make options page
         #     refactor / make functions instead of copy paste
         def pdfMaker(name):
+            # makes hyperlinks
+            def hyperlink(url, text):
+                text=escape_latex(text)
+                return NoEscape(r'\href{' + url + '}{' + text + '}')
             cutoff=currentOptions["cutoffNumber"]
             plotWidth=currentOptions["width"]
             os.chdir("Summary")
             # LaTeX options
             geometry_options = {"right": "2cm", "left": "2cm"}
-            # make LaTeX doc
+            # make LaTeX doc, packages
             doc=Document(geometry_options=geometry_options)
             doc.packages.append(Package("float"))
             doc.packages.append(Package("multicol"))
+            doc.packages.append(Package("graphicx"))
+            doc.packages.append(Package("hyperref", options="colorlinks=true, urlcolor=blue"))
+
+            # title stuff
+            ts0=r'\title{%'+'\n'
+            ts1=r'\includegraphics[width=0.25\textwidth]{ABLogo.pdf}~'+'\n'
+            ts2=r'\\'+'\n'+r'Finance and Investment Challenge Bowl}'+'\n'
+            ts3=r'\author{'+str(TNEntry.get())+" ("+str(RN)+" "+"Responses)}"
+            if len(dateEntry.get())>0:
+                doc.preamble.append(Command('date', dateEntry.get()))
+            else:
+                doc.preamble.append(Command('date', NoEscape(r'\today')))
+
+            doc.preamble.append(NoEscape(ts0+ts1+ts2+ts3))
+            if len(dateEntry.get())>0:
+                doc.preamble.append(Command('date', dateEntry.get()))
+            else:
+                doc.preamble.append(Command('date', NoEscape(r'\today')))
+            doc.append(NoEscape(r'\maketitle'))
+
             # insert age/school plot
             with doc.create(Section("Distribution of ages in participating schools")):
                 with doc.create(Figure(position="H")) as plot1:
@@ -1090,14 +1141,13 @@ def openSummaryCreator():
                 with doc.create(Figure(position="H")) as plot2:
                     plot2.add_image("ClassesTakenPlot.pdf", width=plotWidth)
             # insert number response plot
-            with doc.create(Section("Numerical Questions")):
+            with doc.create(Section("Student Preparation")):
                 with doc.create(Figure(position="H")) as plot3:
                     plot3.add_image("NumbersPlot.pdf", width=plotWidth)
             # insert y/n response plot
             with doc.create(Section("Yes / No Questions")):
                 with doc.create(Figure(position="H")) as plot4:
                     plot4.add_image("YesNoPlot.pdf", width=plotWidth)
-            # two columns
             doc.append(NoEscape(r'\begin{multicols}{2}'))
             # insert how ppl studided list
             with doc.create(Section("How Students Prepared")):
@@ -1105,53 +1155,110 @@ def openSummaryCreator():
                     Dict=freqList(bigDF["Q8"])
                     for key in Dict:
                         if Dict[key]>=cutoff:
-                            itemize.add_item(key+": (x"+str(Dict[key])+")")
+                            if key[-1]==" ":
+                                ans=key[:-1]
+                            else:
+                                ans=key
+                            itemize.add_item(ans+": (x"+str(Dict[key])+")")
+            # two columns and a horizontal line sepparating sections
+            doc.append(NoEscape(r'\end{multicols}'))
+            doc.append(NoEscape(r'\noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}'))
+            doc.append(NoEscape(r'\begin{multicols}{2}'))
             # insert what ppl enjoyed list
             with doc.create(Section("What Students Enjoyed The Most")):
                 with doc.create(Itemize()) as itemize:
                     Dict=freqList(bigDF["Q9"])
                     for key in Dict:
                         if Dict[key]>=cutoff:
-                            itemize.add_item(key+": (x"+str(Dict[key])+")")
+                            if key[-1]==" ":
+                                ans=key[:-1]
+                            else:
+                                ans=key
+                            itemize.add_item(ans+": (x"+str(Dict[key])+")")
+            doc.append(NoEscape(r'\end{multicols}'))
+            doc.append(NoEscape(r'\noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}'))
+            doc.append(NoEscape(r'\begin{multicols}{2}'))
             # insert what ppl enjoyed least list
             with doc.create(Section("What Students Enjoyed The Least")):
                 with doc.create(Itemize()) as itemize:
                     Dict=freqList(bigDF["Q10"])
                     for key in Dict:
                         if Dict[key]>=cutoff:
-                            itemize.add_item(key+": (x"+str(Dict[key])+")")
+                            if key[-1]==" ":
+                                ans=key[:-1]
+                            else:
+                                ans=key
+                            itemize.add_item(ans+": (x"+str(Dict[key])+")")
+            doc.append(NoEscape(r'\end{multicols}'))
+            doc.append(NoEscape(r'\noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}'))
+            doc.append(NoEscape(r'\begin{multicols}{2}'))
             # insert what ppl learned list
             with doc.create(Section("What Students Learned")):
                 with doc.create(Itemize()) as itemize:
                     Dict=freqList(bigDF["Q11"])
                     for key in Dict:
                         if Dict[key]>=cutoff:
-                            itemize.add_item(key+": (x"+str(Dict[key])+")")
+                            if key[-1]==" ":
+                                ans=key[:-1]
+                            else:
+                                ans=key
+                            itemize.add_item(ans+": (x"+str(Dict[key])+")")
+            doc.append(NoEscape(r'\end{multicols}'))
+            doc.append(NoEscape(r'\noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}'))
+            doc.append(NoEscape(r'\begin{multicols}{2}'))
             # insert how ppl would improve list
             with doc.create(Section("How Students Would Improve FICB")):
                 with doc.create(Itemize()) as itemize:
                     Dict=freqList(bigDF["Q14"])
                     for key in Dict:
                         if Dict[key]>=cutoff:
-                            itemize.add_item(key+": (x"+str(Dict[key])+")")
+                            if key[-1]==" ":
+                                ans=key[:-1]
+                            else:
+                                ans=key
+                            itemize.add_item(ans+": (x"+str(Dict[key])+")")
+            doc.append(NoEscape(r'\end{multicols}'))
+            doc.append(NoEscape(r'\noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}'))
+            doc.append(NoEscape(r'\begin{multicols}{2}'))
             # insert what ppl are aware of list
-            with doc.create(Section("How Others in the Students'Communities are Aware of their Participation")):
+            with doc.create(Section("How Others in the Students' Communities are Aware of their Participation")):
                 with doc.create(Itemize()) as itemize:
                     Dict=freqList(bigDF["Q16"])
                     for key in Dict:
                         if Dict[key]>=cutoff:
-                            itemize.add_item(key+": (x"+str(Dict[key])+")")
+                            if key[-1]==" ":
+                                ans=key[:-1]
+                            else:
+                                ans=key
+                            itemize.add_item(ans+": (x"+str(Dict[key])+")")
+            doc.append(NoEscape(r'\end{multicols}'))
+            doc.append(NoEscape(r'\noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}'))
+            doc.append(NoEscape(r'\begin{multicols}{2}'))
             # insert stock list
             with doc.create(Section("What Stock Students Suggest to Buy")):
                 with doc.create(Itemize()) as itemize:
                     Dict=freqList(bigDF["Q18"])
                     for key in Dict:
                         if Dict[key]>=cutoff:
-                            itemize.add_item(key+": (x"+str(Dict[key])+")")
-            # end two columns
+                            if key[-1]==" ":
+                                ans=key[:-1]
+                            else:
+                                ans=key
+                            itemize.add_item(ans+": (x"+str(Dict[key])+")")
             doc.append(NoEscape(r'\end{multicols}'))
+            # thank you page
+            doc.append(NoEscape(r'\pagebreak'))
+            with doc.create(Section("Follow Up")):
+                doc.append("If you have any questions or would like to learn about how you could be more involved with the FICB please:")
+                with doc.create(Itemize()) as itemize:
+                    itemize.add_item("Call Richard Entenmann of Asset Builders at (608) 663-6332")
+                    itemize.add_item(NoEscape("Visit "+r'\href{www.assetbuilders.org}{www.assetbuilders.org}'))
+                    itemize.add_item(NoEscape("Send us an email at "+r'\href{info@assetbuilders.org}{info@assetbuilders.org}'))
+                doc.append("Thank you!")
             # generate pdf
             doc.generate_pdf("Summary_of_"+name, clean=True, clean_tex=True, compiler="pdfLatex")
+            # delete extra logo file
+            os.remove("ABLogo.pdf")
             # return to set dir i.e. "testSet1"
             os.chdir("..")
         pdfMaker(name)
@@ -1175,8 +1282,9 @@ def openSummaryCreator():
         # create the button to execute the summary
         sumButton=Button(top, text="Summarize", command=lambda: summarize(name=value), bg="DarkSeaGreen")
         sumButton.grid(column=3, row=0)
-        # button to set options
-    
+        # sets t name
+        TNEntry.delete(0, END)
+        TNEntry.insert(0, value)
     # opens page to change options
     def openOptions():
         optWindow=Toplevel()
