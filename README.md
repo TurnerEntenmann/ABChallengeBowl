@@ -26,7 +26,7 @@ Allows easy entry and summarization of answer sheets from the Asses Builder Chal
         4. If you're on Linux, you probably already know how to do this
     3. In the command prompt /  powershell window, type in `cd` then a space then paste the path and hit enter, the full command will look something like `cd "C:\Users\Owner\Documents\ABChallengeBowl"
     4. To launch the program, type in (or copy and paste) `python ABChallengeBowl.py` and hit the enter button.
-### Notes:
+## Notes:
 1. Steps 1-5 only need to be done once (and only if you dont have python or MiKTeX already downloaded).
 2. When summarizing for the first time, the program will look like it has frozen, this is because MiKTeX is downloading and installing a lot of packages in the background, this is normal and should take ~5-10 minutes. All subsiquent summarizations will be much quicker.
 3. The scroll bar does a little janky when entering new sheets, if it is not working or does not go all the way down, resize the window by clicking the top of it and dragging it to the top of the screen.
