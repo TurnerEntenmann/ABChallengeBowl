@@ -25,7 +25,7 @@ Allows easy entry and summarization of answer sheets from the Asses Builder Chal
         3. On a Mac, select the folder and then right-click it, when the context menu pops up, press and hold the Options key on the keyboard, then select the `Copy ... as Pathname` options where `...` is the name of the folder
         4. If you're on Linux, you probably already know how to do this
     3. In the command prompt /  powershell window, type in `cd` then a space then paste the path and hit enter, the full command will look something like `cd "C:\Users\Owner\Documents\ABChallengeBowl"
-    4. To launch the program, type in (or copy and paste) `python ABChallengeBowl.py`
+    4. To launch the program, type in (or copy and paste) `python ABChallengeBowl.py` and hit the enter button.
 ### Notes:
 1. Steps 1-5 only need to be done once (and only if you dont have python or MiKTeX already downloaded).
 2. When summarizing for the first time, the program will look like it has frozen, this is because MiKTeX is downloading and installing a lot of packages in the background, this is normal and should take ~5-10 minutes. All subsiquent summarizations will be much quicker.
