@@ -29,3 +29,4 @@ Allows easy entry and summarization of answer sheets from the Asses Builder Chal
 ### Notes:
 1. Steps 1-5 only need to be done once (and only if you dont have python or MiKTeX already downloaded).
 2. When summarizing for the first time, the program will look like it has frozen, this is because MiKTeX is downloading and installing a lot of packages in the background, this is normal and should take ~5-10 minutes. All subsiquent summarizations will be much quicker.
+3. The scroll bar does a little janky when entering new sheets, if it is not working or does not go all the way down, resize the window by clicking the top of it and dragging it to the top of the screen.
