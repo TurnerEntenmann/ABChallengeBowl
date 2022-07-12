@@ -19,8 +19,11 @@ Allows easy entry and summarization of answer sheets from the Asses Builder Chal
     5. You may now delete the .zip and the `ABChallengeBowl-1.X` folders leaving only the `ABChallengeBowl` in your documents.
 6. Using the program
     1. Open a command prompt / powershell window
-    2. Open your file explorer and copy the path of your folder i.e. `ABChallengeBowl`. This is done differently on different operating systems.
+    2. Open your file explorer and copy the path of your folder i.e. of `ABChallengeBowl`. This is done differently on different operating systems.
         1. On Windows 10, click the down arrow button just below the close window X in the upper right, then single click the folder so that it is highlighted and finish by clicking the `Copy path` button on the top of the window to the immediate right of the `Paste` button.
+        2. On Windows 11, single-click the folder so that it is highlighted then right-click it and select `Copy as path`
+        3. On a Mac, select the folder and then right-click it, when the context menu pops up, press and hold the Options key on the keyboard, then select the `Copy ... as Pathname` options where `...` is the name of the folder
+        4. If you're on Linux, you probably already know how to do this
     3. In the command prompt /  powershell window, type in `cd` then a space then paste the path and hit enter, the full command will look something like `cd "C:\Users\Owner\Documents\ABChallengeBowl"
     4. To launch the program, type in (or copy and paste) `python ABChallengeBowl.py`
 ### Notes:
