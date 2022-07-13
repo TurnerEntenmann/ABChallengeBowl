@@ -1,7 +1,4 @@
-# TODO:
-#   make scrollbar always work
-
-import json, os, matplotlib, zipfile, shutil
+import json, os, matplotlib, zipfile, shutil, platform
 import numpy as np
 import pandas as pd
 from pylatex import Document, Section, Subsection, Table, Math, TikZ, Axis, \
@@ -135,11 +132,8 @@ nsButton.grid(column=0, row=3, sticky="ns")
 savingDirString=""
 
 # fxn to enter new answer
-# TODO:
-#    fix scroll bar
 def openAnswerCreator():
     # window set up
-    # TODO: make scrollbar work without dragging the window to the top
     top=Toplevel()
     top.iconbitmap("abIcon.ico")
     top.configure(bg="WhiteSmoke")
@@ -167,11 +161,21 @@ def openAnswerCreator():
         mainFrame.update()
         canvas.configure(scrollregion=canvas.bbox("all"))
     makeScrollBar()
-
-    # mouse wheel
+    # mouse wheel    
     def mouseWheel(event):
         global canvas
-        canvas.yview_scroll(-1*int(event.delta/120), "units")
+        # windows
+        if platform.system()=="Windows":
+            canvas.yview_scroll(-1*int(event.delta/120), "units")
+        # linux
+        if platform.system()=="Linux":
+            if event.num==5:
+                canvas.yview_scroll(1, "units")
+            if event.num==4:
+                canvas.yview_scroll(-1, "units")
+        # mac
+        if platform.system()=="Darwin":
+            canvas.yview_scroll(event.delta, "units")
     top.bind("<MouseWheel>", mouseWheel)
 
     # global vars
@@ -218,9 +222,6 @@ def openAnswerCreator():
         # gets answers into strings
         a1=a1.get()
         a2=a2.get()
-        # TODO: fix a3 (multi select)
-        # must be string with entries sep by ", "
-        # e.g. merp, derp
         List=[]
         for idx in a3LB.curselection():
             List.append(a3LB.get(idx))
@@ -292,7 +293,6 @@ def openAnswerCreator():
     # fxn that sets up entries
     # TODO:
     #     changing dir stacks frames on top of eachother
-    #     fix scrollbar ?? here ??
     #     delete old widgets when updating LBs, entering in new group, entering new student
     #     declutter / get rid of old code / vars
     def eSetUp():
@@ -619,8 +619,6 @@ def openAnswerCreator():
         yButton15=Radiobutton(q15Frame, text="Yes", variable=a15, value="Yes", bg="ghost white").grid(column=0, row=0)
         nButton15=Radiobutton(q15Frame, text="No", variable=a15, value="No", bg="ghost white").grid(column=1, row=0)
         # frame for q16
-        # TODO:
-        #     write out whole question
         q16Frame=LabelFrame(secondFrame, text="Q16: Please describe how others in the community are aware ...", bg="ghost white")
         q16Frame.grid(column=0, row=15, sticky=W)
         # var and buttons for a16
@@ -727,8 +725,6 @@ ACButton=Button(root, text="Add New Student", command=openAnswerCreator, bg="Dar
 ACButton.grid(column=1, row=0)
 
 # summary window
-# TODO:
-#    get all answers into one zip file when summarizing
 def openSummaryCreator():
     global ansSets, savingDirString, setName
     # set up
@@ -780,9 +776,6 @@ def openSummaryCreator():
         defaultOptions()
     
     # create the summary of the selected set
-    # TODO:
-    #     ?? make progress bar ??
-    #     doesn't work twice in the same session? after changing options?
     def summarize(name):
         logoPath=os.path.abspath("ABLogo.pdf")
         currentOptions={}
