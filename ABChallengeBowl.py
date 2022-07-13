@@ -165,8 +165,15 @@ def openAnswerCreator():
     def resetScrollBar():
         global mainFrame, canvas
         mainFrame.update()
-        canvas.config(scrollregion=mainFrame.bbox("all"))
+        canvas.configure(scrollregion=canvas.bbox("all"))
     makeScrollBar()
+
+    # mouse wheel
+    def mouseWheel(event):
+        global canvas
+        canvas.yview_scroll(-1*int(event.delta/120), "units")
+    top.bind("<MouseWheel>", mouseWheel)
+
     # global vars
     global a1, a2, a3, a3LB, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a18LB, ansSets, savingDirString, setName
     # makes frame to select which set to save into
@@ -330,17 +337,6 @@ def openAnswerCreator():
                         aListDict["Q16"].append(blankFxn(data["Q16"]))
                         aListDict["Q17"].append(blankFxn(data["Q17"]))
                         aListDict["Q18"].append(blankFxn(data["Q18"]))
-            # if it is a mult choice, we want each ans to be a button
-            #TODO; fix a3
-            #realQ3List=[]
-            #for answer in aListDict["Q3"]:
-            #    answerList=answer.split(", ")
-            #    if len(answerList)>1:
-            #        for ans in answerList:
-            #            realQ3List.append(ans)
-            #    else:
-            #        realQ3List.append(answer)
-            #aListDict["Q3"]=realQ3List
 
             for key in aListDict:
                 realList=[]
@@ -351,7 +347,7 @@ def openAnswerCreator():
                     else:
                         realList.append(answer)
                 aListDict[key]=list(set(realList))
-
+            resetScrollBar()
 
             #for key in aListDict:
             #    aListDict[key]=list(set(aListDict[key]))
@@ -416,6 +412,7 @@ def openAnswerCreator():
                 else:
                     messagebox.showerror("Error", f"{newAns} is already an option")
                 q3entry.delete(0, END)
+            resetScrollBar()
         # entry box for q3
         q3entry=Entry(q3Frame, width=50)
         q3entry.grid(column=0,row=0)
