@@ -15,7 +15,7 @@ Allows easy entry and summarization of answer sheets from the Asses Builder Chal
     1. On this page, look for the "Releases" section on the right and click on the latest release.
     2. Click on the .zip link to download the files.
     3. Once downloaded, in your file explorer right-click the *.zip* folder and choose *Extract All...*
-    4. This will create a new folder named something like `ABChallengeBowl-1.X`, go into it and copy all the files into the folder you made in step (4).
+    4. This will create a new folder named something like `ABChallengeBowl-1.X`, go into it and copy all the files into the folder you made in step (3).
     5. You may now delete the *.zip* and the `ABChallengeBowl-1.X` folders leaving only the `ABChallengeBowl` folder with the files on your computer.
 5. Using the program
     1. Open a command prompt / powershell window
