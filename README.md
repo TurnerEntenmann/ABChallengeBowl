@@ -7,7 +7,7 @@ Allows easy entry and summarization of answer sheets from the Asses Builder Chal
     3. Open a command prompt / powershell window and execute `pip install matplotlib, pandas, pylatex`
 2. Download MiKTeX
     1. Go to the [MiKTeX website](https://miktex.org/download) and download the version for your operating system.
-    2. Open the .exe and install MiKTeX normally. Make sure to answer *Yes* when asked to intall missing modules on the fly.
+    2. Open the .exe and install MiKTeX normally. Make sure to answer *Yes* when asked to install missing modules on the fly.
     3. Open the MiKTeX app, check for and install any updates.
 3. Folder Set Up
     1. Create a folder on your computer for the program and all the files it creates. For example in your `Documents` folder, create a new folder and name it "ABChallengeBowl".
