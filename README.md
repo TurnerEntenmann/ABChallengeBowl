@@ -2,7 +2,7 @@
 Allows easy entry and summarization of answer sheets from the Asses Builder Challenge Bowls.
 ## Steps to Download and Use
 1. Download python
-    1. Go to the [python website](https://www.python.org/downloads/) and download the version for your operating system.
+    1. Go to the [python website](https://www.python.org/downloads/) and download the latest version for your operating system.
     2. Open the .exe and install python. Make sure to check the *add python to path* button.
     3. Open a command prompt / powershell window and execute `pip install matplotlib, pandas, pylatex`
 2. Download MiKTeX
