@@ -17,7 +17,9 @@ Allows easy entry and summarization of answer sheets from the Asses Builder Chal
     3. Once downloaded, in your file explorer right-click the *.zip* folder and choose *Extract All...*
     4. This will create a new folder named something like `ABChallengeBowl-1.X`, go into it and copy all the files into the folder you made in step (3).
     5. You may now delete the *.zip* and the `ABChallengeBowl-1.X` folders leaving only the `ABChallengeBowl` folder with the files on your computer.
-5. Using the program
+5. Install dependencies
+    1. Open a powershell window in the directory for the program and run `pip3 install -r requirements.txt`
+6. Using the program
     1. Open a command prompt / powershell window
     2. Open your file explorer and copy the path of your folder i.e. of `ABChallengeBowl`. This is done differently on different operating systems.
         1. On **Windows 10**, click the down arrow button just below the close window X button in the upper right corner of the window, then single click the folder so that it is highlighted and finish by clicking the *Copy path* button on the top of the window to the immediate right of the `Paste` button.
